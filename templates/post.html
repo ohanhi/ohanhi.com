@@ -26,6 +26,7 @@
       </h3>
     </header>
     <p class="post-date">$date$</p>
+
     <hr>
 
     <strong>Read this to</strong>
@@ -35,14 +36,14 @@
       $endfor$
     </ul>
 
-    $if(i_expect_you_to_know)$
     <strong>I expect you to know</strong>
     <ul class="post-prereqs">
       $for(i_expect_you_to_know)$
         <li>$body$</li>
       $endfor$
     </ul>
-    $endif$
+
+    <hr>
 
     $body$
 
