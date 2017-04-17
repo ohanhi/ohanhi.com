@@ -1,0 +1,74 @@
+<!DOCTYPE html>
+<html class="no-js">
+<head>
+  <meta charset="utf-8">
+  <meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1">
+  <title>$if(title)$ $title$ - $endif$Ossi Hanhinen</title>
+  <meta name="description" content="$title$">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <link href='https://fonts.googleapis.com/css?family=Open+Sans:400,600,300|Crimson+Text' rel='stylesheet' type='text/css'>
+  <link href='https://fonts.googleapis.com/css?family=Inconsolata' rel='stylesheet' type='text/css'>
+  <link rel="stylesheet" href="/lib/highlight/github.css">
+  <script src="/lib/highlight/highlight.pack.js"></script>
+  <link rel="stylesheet" href="/css/normalize.min.css">
+  <link rel="stylesheet" href="/css/main.css">
+</head>
+<body>
+
+  <section class="contain post">
+    <a href="/" class="back-link">&laquo; Home</a>
+    <h1 class="post-title">$title$</h1>
+    <header class="post-header">
+      <img class="profile-pic" src="/img/profile.jpg" alt="">
+      <h3 class="author">
+        <span>Ossi Hanhinen</span>
+        <a href="https://twitter.com/ohanhi">@ohanhi</a>
+      </h3>
+    </header>
+    <p class="post-date">$date$</p>
+    <hr>
+
+    <strong>Read this to</strong>
+    <ul class="post-reasons">
+      $for(read_this_to)$
+        <li>$body$</li>
+      $endfor$
+    </ul>
+
+    $if(i_expect_you_to_know)$
+    <strong>I expect you to know</strong>
+    <ul class="post-prereqs">
+      $for(i_expect_you_to_know)$
+        <li>$body$</li>
+      $endfor$
+    </ul>
+    $endif$
+
+    $body$
+
+    <div class="post-footer">
+      Maybe your followers would be interested in this post? <a href="https://twitter.com/intent/tweet?original_referer={{ site.url | cgi_escape }}{{ page.url | cgi_escape }}&amp;text={{ page.title | uri_escape }}&amp;url={{ site.url | cgi_escape }}{{ page.url | cgi_escape }}&amp;via=ohanhi" rel="nofollow" target="_blank">Get tweety with it!</a>
+    </div>
+
+    $partial("templates/disqus.html")$
+  </section>
+  <footer>
+    <a href="https://twitter.com/ohanhi">Twitter</a>
+    &ndash;
+    <a href="https://github.com/ohanhi">GitHub</a>
+  </footer>
+
+  <script src="js/main.js"></script>
+  <script async src="https://platform.twitter.com/widgets.js" charset="utf-8"></script>
+  <script>
+  hljs.initHighlighting();</script>
+  <script>
+  (function(b,o,i,l,e,r){b.GoogleAnalyticsObject=l;b[l]||(b[l]=
+    function(){(b[l].q=b[l].q||[]).push(arguments)});b[l].l=+new Date;
+    e=o.createElement(i);r=o.getElementsByTagName(i)[0];
+    e.src='https://www.google-analytics.com/analytics.js';
+    r.parentNode.insertBefore(e,r)}(window,document,'script','ga'));
+    ga('create','UA-58943555-1');ga('send','pageview');
+    </script>
+  </body>
+  </html>
