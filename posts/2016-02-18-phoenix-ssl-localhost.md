@@ -1,6 +1,10 @@
 ---
 layout: post
 title: "SSL on localhost with Phoenix Framework"
+i_expect_you_to_know:
+  - Elixir and Phoenix
+read_this_to:
+  - learn how to set up SSL for localhost
 ---
 
 Sometimes when developing a backend, you want to use HTTPS even on localhost. I ran into this situation not long ago when I was building a mock service providing OAuth 2.0 authentication.

@@ -1,6 +1,8 @@
 ---
 layout: post
 title: The Why and When of Choosing Elm
+i_expect_you_to_know:
+  - the basics of frontend development
 read_this_to:
   - gain a quick understanding of where Elm fits the picture well and where it poses challenges
 ---

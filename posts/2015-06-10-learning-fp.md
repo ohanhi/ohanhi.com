@@ -1,6 +1,10 @@
 ---
 layout: post
 title: "Learning FP the hard way: Experiences on the Elm language"
+i_expect_you_to_know:
+  - some JavaScript
+read_this_to:
+  - get a gentle introduction to Elm and some of its core concepts
 ---
 
 Originally published as a [public Gist](https://gist.github.com/ohanhi/0d3d83cf3f0d7bbea9db)

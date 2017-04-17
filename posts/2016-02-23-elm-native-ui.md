@@ -1,6 +1,11 @@
 ---
 layout: post
 title: "Elm Native UI: Writing a React Native app in Elm"
+i_expect_you_to_know:
+  - what React Native is
+  - some Elm
+read_this_to:
+  - get an inside look into how Elm Native UI was made
 ---
 
 > **Edited Feb 24, 2016**<br>
