@@ -158,7 +158,7 @@ pre code {
 }
 
 pre {
-  font-size: 0.8rem;
+  line-height: 1.3;
   background: rgba(255,255,255, 0.5);
   padding: 1rem;
   margin: 0;
