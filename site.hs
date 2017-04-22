@@ -1,12 +1,12 @@
 --------------------------------------------------------------------------------
 {-# LANGUAGE OverloadedStrings #-}
 import           System.FilePath (splitExtension)
-import qualified Data.Map                        as Map
 import           Data.Monoid (mappend)
-import qualified Control.Monad                   as Monad
-import           Data.Maybe                      (fromMaybe)
+import           Control.Applicative (Alternative (..))
+import qualified Control.Monad as Monad
+import           Data.Maybe (fromMaybe)
+import           Network.HTTP.Base (urlEncode)
 import           Hakyll
-import           Hakyll.Core.Metadata
 
 
 --------------------------------------------------------------------------------
@@ -75,10 +75,32 @@ postCtx :: Context String
 postCtx =
     dateField "date" "%B %-d, %Y"
       `mappend` constField "base_url" "https://ohanhi.com"
+      `mappend` twitterFields "https://ohanhi.com"
       `mappend` listContextWith "i_expect_you_to_know"
       `mappend` listContextWith "read_this_to"
       `mappend` defaultContext
 
+twitterFields :: String -> Context a
+twitterFields baseUrl =
+    twitterUrlField baseUrl
+      `mappend` twitterTextField
+
+twitterUrlField :: String -> Context a
+twitterUrlField baseUrl = field "twitter_url" $
+      fmap (maybe empty (\a -> urlEncode $ baseUrl ++ toUrl a)) . getRoute . itemIdentifier
+
+twitterTextField :: Context a
+twitterTextField = field "twitter_text" $ \item -> do
+    metadata <- getMetadata (itemIdentifier item)
+    let find s = lookupString s metadata
+    (find "series", find "title", find "subtitle")
+        |> (\(series, title, subtitle) ->
+            fromMaybe "" (fmap (\s -> s ++ ": ") series)
+              ++ fromMaybe "No title" title
+              ++ fromMaybe "" (fmap ((++) " - ") subtitle)
+           )
+        |> urlEncode
+        |> return
 
 listContextWith :: String -> Context a
 listContextWith s =

@@ -190,12 +190,14 @@ code {
   font-family: 'Inconsolata', monospace;
   padding: 2px;
   background: #fff;
+  color: #570f56;
   border-radius: 2px;
 }
 
 pre code {
   background: none;
   border: none;
+  color: inherit;
   padding: 0;
 }
 
