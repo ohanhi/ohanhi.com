@@ -1,6 +1,7 @@
 ---
 layout: post
-title: "Elm Native UI: Writing a React Native app in Elm"
+series: Elm Native UI
+title: Writing a React Native app in Elm
 i_expect_you_to_know:
   - what React Native is
   - some Elm

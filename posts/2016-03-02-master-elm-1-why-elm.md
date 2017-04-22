@@ -1,6 +1,7 @@
 ---
 layout: post
-title: "Master Elm pt. 1 - Why Elm"
+series: Master Elm pt. 1
+title: Why Elm
 i_expect_you_to_know:
   - some JavaScript
 read_this_to:

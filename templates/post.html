@@ -6,18 +6,15 @@
   <title>$if(title)$ $title$ - $endif$Ossi Hanhinen</title>
   <meta name="description" content="$title$">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <link href='https://fonts.googleapis.com/css?family=Open+Sans:400,600,300|Crimson+Text' rel='stylesheet' type='text/css'>
-  <link href='https://fonts.googleapis.com/css?family=Inconsolata' rel='stylesheet' type='text/css'>
-  <link rel="stylesheet" href="/lib/highlight/github.css">
-  <script src="/lib/highlight/highlight.pack.js"></script>
-  <link rel="stylesheet" href="/css/normalize.min.css">
   <link rel="stylesheet" href="/css/main.css">
 </head>
 <body>
 
   <section class="contain post">
     <a href="/" class="back-link">&laquo; Home</a>
+    $if(series)$<h3>$series$</h3>$endif$
     <h1 class="post-title">$title$</h1>
+    $if(subtitle)$<h2>$subtitle$</h2>$endif$
     <header class="post-header">
       <img class="profile-pic" src="/img/profile.jpg" alt="">
       <h3 class="author">
@@ -60,9 +57,6 @@
   </footer>
 
   <script src="js/main.js"></script>
-  <script async src="https://platform.twitter.com/widgets.js" charset="utf-8"></script>
-  <script>
-  hljs.initHighlighting();</script>
   <script>
   (function(b,o,i,l,e,r){b.GoogleAnalyticsObject=l;b[l]||(b[l]=
     function(){(b[l].q=b[l].q||[]).push(arguments)});b[l].l=+new Date;

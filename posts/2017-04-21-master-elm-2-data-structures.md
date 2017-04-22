@@ -1,5 +1,6 @@
 ---
-title: "Master Elm pt. 2 - Introduction to data structures"
+series: Master Elm pt. 2
+title: Introduction to data structures
 read_this_to:
   - get an overview on all of the basic data structures in Elm
 i_expect_you_to_know:
@@ -15,8 +16,8 @@ I suggest you to read these in order, but here's a quick navigation just in case
 - [Record](#record)
 - [Tuple](#tuple)
 - [List](#list)
-- [Dict](#dict)
 - [Set](#set)
+- [Dict](#dict)
 - [Array](#array)
 
 
@@ -138,8 +139,7 @@ Lists are written with brackets `[]` and items within are separated with commas 
 Adding an item in front of a list is very efficient, because it doesn't affect the rest of the list in any way! For the CS folks, Elm lists are immutable linked lists.
 In the drawing below, the blue one is the existing list with items always linking to the next one. The yellow is the new list. As you can see, only the new item `"E"` had to be added, linking into the previous first item `"D"`.
 
-![](/img/data-structures/list.jpg)
-
+![Drawing of a List](/img/data-structures/list.jpg)
 
 You can combine (concatenate) two lists with `++`, and add a single item to the front of a list with `::` (pronounced cons).
 
@@ -165,13 +165,38 @@ getFirstTwo list =
 ```
 
 
+## Set
+
+Sets are an often overlooked data structure, even though they are very useful in some cases. (Ironically, I missed this section in the original edition of the article, too.) A set is an orderless collection of items, where each item can only appear once. You can also use Set to get only unique values in a List with `Set.toList (Set.fromList myList)`. Keep in mind the resulting list won't necessarily be in the same order, however.
+
+As a practical example, in the lottery game Keno each number can only occur once.
+
+```haskell
+kenoRound : Set Int
+kenoRound =
+    Set.fromList
+        [ 1, 10, 43, 39, -- ...
+        ]
+```
+
+Trying to  `Set.insert 10 kenoRound` would return the same set as before, because `10` was already in the set.
+
+Set has a whole bunch of interesting functions, such as `union`, `intersect` and `diff`, which are what Venn diagrams were made to depict:
+
+![Intersection of two sets](/img/data-structures/set-intersection.jpg)
+
+In the figure above, the highlighted part is the intersection of the two sets. Union would be all of the yellow and blue set, and difference would be everything in the two sets that is **not** highlighted.
+
+Note: The core Set can only have `comparable`s as keys: numbers and strings, really. In a pinch, this might help you: a Set is really just a Dict that uses only the keys, and uses `()` for all the values.  Thus, [`eeue56/elm-all-dict`](http://package.elm-lang.org/packages/eeue56/elm-all-dict/latest) can be used for making a Set implementation of your own.
+
+
 ## Dict
 
 `Dict` is short for dictionary: the data structure has keywords and values. You can only find a value by its keyword, not the other way around. The keywords also need to be unique within the Dict. This data structure is incredibly useful for storing things like translations, but also collections of records that are referenced by their IDs.
 
 Here's a depiction of how data is organized in a Dict:
 
-![](/img/data-structures/dict.jpg)
+![Drawing of a Dict](/img/data-structures/dict.jpg)
 
 
 This is what it looks like in code:
@@ -196,11 +221,11 @@ Note: The core Dict can only have `comparable`s as keys: numbers and strings, re
 
 First off, if you are looking to use `Array`s, use [`Skinney/elm-array-exploration`](http://package.elm-lang.org/packages/Skinney/elm-array-exploration/latest), which will soon replace the current core implementation.
 
-Array has a fixed size, which makes adding items inefficient. But unlike List, you can efficiently retrieve or update e.g. the 50th item in an Array.
+Array occupies a fixed chunk of the computer's memory. If you add an item so that the array gets bigger, a new bigger chunk will be allocated somewhere else and then all of the contents are copied over. This makes adding items inefficient. But unlike List, you can efficiently retrieve or update e.g. the 50th item in an Array.
 
 This is how arrays look like in my mind:
 
-![](/img/data-structures/array.jpg)
+![Drawing of an Array](/img/data-structures/array.jpg)
 
 And this is how it looks in code:
 

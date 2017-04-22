@@ -1,6 +1,7 @@
 ---
 layout: post
-title: 'Revisiting the "hard way": Base for a game in Elm 0.17'
+title: Base for a game in Elm 0.17
+subtitle: Revisiting the "hard way"
 i_expect_you_to_know:
   - some programming
 read_this_to:

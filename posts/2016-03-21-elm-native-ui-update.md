@@ -1,6 +1,7 @@
 ---
 layout: post
-title: "Elm Native UI: The future of Elm + React Native"
+series: Elm Native UI
+title: "The future of Elm + React Native"
 i_expect_you_to_know:
   - what React Native is
   - some Elm

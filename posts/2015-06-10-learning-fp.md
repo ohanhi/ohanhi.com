@@ -1,6 +1,7 @@
 ---
 layout: post
-title: "Learning FP the hard way: Experiences on the Elm language"
+title: Learning FP the hard way
+subtitle: Experiences on the Elm language
 i_expect_you_to_know:
   - some JavaScript
 read_this_to:

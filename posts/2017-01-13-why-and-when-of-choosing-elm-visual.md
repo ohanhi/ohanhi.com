@@ -1,6 +1,7 @@
 ---
 layout: post
-title: The Why and When of Choosing Elm - the Visual Edition
+title: The Why and When of Choosing Elm
+subtitle: the Visual Edition
 i_expect_you_to_know:
   - the basics of frontend development
 read_this_to:
