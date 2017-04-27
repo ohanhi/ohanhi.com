@@ -63,7 +63,7 @@ dogB =
     }
 
 sameDogs =
-    dog1 == dog2 -- True
+    dogA == dogB -- True
 ```
 
 The two parts of syntax related to records are getting and setting:
@@ -108,7 +108,7 @@ info =
 You can pattern match on tuples too:
 
 ```haskell
-getComment : ( Bool, String )
+getComment : ( Bool, String ) -> String
 getComment pair =
     case pair of
         ( True, word ) ->
