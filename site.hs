@@ -84,23 +84,22 @@ postCtx :: Context String
 postCtx =
     dateField "date" "%B %-d, %Y"
       `mappend` constField "base_url" "https://ohanhi.com"
-      `mappend` twitterFields "https://ohanhi.com"
+      `mappend` fullTitleField "full_title" False
+      `mappend` fullTitleField "twitter_text" True
+      `mappend` twitterUrlField "https://ohanhi.com"
       `mappend` listContextWith "i_expect_you_to_know"
       `mappend` listContextWith "read_this_to"
       `mappend` defaultContext
 
-twitterFields :: String -> Context a
-twitterFields baseUrl =
-    twitterUrlField baseUrl
-      `mappend` twitterTextField
 
 twitterUrlField :: String -> Context a
 twitterUrlField baseUrl =
     field "twitter_url" $
       fmap (maybe empty (\a -> urlEncode $ baseUrl ++ toUrl a)) . getRoute . itemIdentifier
 
-twitterTextField :: Context a
-twitterTextField = field "twitter_text" $ \item -> do
+
+fullTitleField :: String -> Bool -> Context a
+fullTitleField fieldName urlEncoded = field fieldName $ \item -> do
     metadata <- getMetadata (itemIdentifier item)
     let find s = lookupString s metadata
     (find "series", find "title", find "subtitle")
@@ -109,7 +108,7 @@ twitterTextField = field "twitter_text" $ \item -> do
               ++ fromMaybe "No title" title
               ++ fromMaybe "" (fmap ((++) " - ") subtitle)
            )
-        |> urlEncode
+        |> (if urlEncoded then urlEncode else \a -> a)
         |> return
 
 listContextWith :: String -> Context a
