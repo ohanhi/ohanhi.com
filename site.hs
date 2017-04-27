@@ -26,9 +26,11 @@ main = hakyll $ do
 
     match "posts/*" $ do
         route   $ customRoute $ pathToPostName . toFilePath
-        compile $ pandocCompiler
-            >>= loadAndApplyTemplate "templates/post.html"    postCtx
-            >>= relativizeUrls
+        compile postCompiler
+
+    match "drafts/*" $ do
+        route   $ setExtension "html"
+        compile postCompiler
 
     match "index.html" $ do
         route idRoute
@@ -52,6 +54,13 @@ main = hakyll $ do
         compile copyFileCompiler
 
     match "templates/*" $ compile templateBodyCompiler
+
+
+postCompiler :: Compiler (Item String)
+postCompiler =
+    pandocCompiler
+      >>= loadAndApplyTemplate "templates/post.html"    postCtx
+      >>= relativizeUrls
 
 
 (|>) = flip ($)
@@ -86,7 +95,8 @@ twitterFields baseUrl =
       `mappend` twitterTextField
 
 twitterUrlField :: String -> Context a
-twitterUrlField baseUrl = field "twitter_url" $
+twitterUrlField baseUrl =
+    field "twitter_url" $
       fmap (maybe empty (\a -> urlEncode $ baseUrl ++ toUrl a)) . getRoute . itemIdentifier
 
 twitterTextField :: Context a
