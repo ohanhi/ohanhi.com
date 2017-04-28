@@ -1,6 +1,6 @@
 ---
 title: Elm in the day-to-day
-subtitle: Software Consultancy and Elm, how do they mix?
+subtitle: Software consultancy and Elm, how do they mix?
 read_this_to:
   - understand how the functional purity of Elm affects day-to-day work
   - know some common cases when you need to reach out to JavaScript

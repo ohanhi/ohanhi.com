@@ -91,6 +91,10 @@ h1, h2, h3, h4 {
   line-height: 1.2;
 }
 
+.post-title + h2 {
+  margin-top: -0.618em;
+}
+
 h1.huge {
   font-size: 6.854em;
 }
@@ -131,6 +135,11 @@ blockquote {
   border-left: 2px solid #999;
   padding: 0.5rem 0 0.5rem 1rem;
   margin: 1em 0;
+}
+
+cite {
+  font-style: normal;
+  font-size: 0.8em;
 }
 
 .big-header {
@@ -181,6 +190,10 @@ footer {
   max-width: 50em;
 }
 
+.post-header {
+  margin: 3em 0 4em;
+}
+
 .post-reasons li p,
 .post-prereqs li p {
   margin: 0;
@@ -224,23 +237,25 @@ pre {
 
 .post-date {
   font-size: 0.8rem;
+  margin: 0;
+  align-self: flex-end;
 }
 
-.post-header {
+.post-meta {
   display: flex;
   flex-direction: row;
   align-items: center;
   margin: 2em 0 0;
 }
 
-.post-header .profile-pic {
+.post-meta .profile-pic {
   width: 60px;
   max-width: 20%;
   height: auto;
   margin-right: 1em;
 }
 
-.post-header .author {
+.post-meta .author {
   flex: 1;
   margin: 0;
   font-size: 0.8rem;
@@ -251,7 +266,7 @@ pre {
   align-items: flex-start;
 }
 
-.post-header .author a {
+.post-meta .author a {
   background: none;
 }
 
@@ -278,10 +293,10 @@ a {
   transition: all 0.2s ease;
   text-decoration: none;
   text-shadow:
-    -1px -1px 0 #eee,
-    1px -1px 0 #eee,
-    -1px 1px 0 #eee,
-    1px 1px 0 #eee;
+    -1px -1px 0 #fefefe,
+    1px -1px 0 #fefefe,
+    -1px 1px 0 #fefefe,
+    1px 1px 0 #fefefe;
   background-image: linear-gradient(
     to top,
     #805aae 0px,

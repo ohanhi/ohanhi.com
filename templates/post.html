@@ -12,28 +12,31 @@
 
   <section class="contain post">
     <a href="/" class="back-link">&laquo; Home</a>
-    $if(series)$<h3>$series$</h3>$endif$
-    <h1 class="post-title">$title$</h1>
-    $if(subtitle)$<h2>$subtitle$</h2>$endif$
+
     <header class="post-header">
+      $if(series)$<h3>$series$</h3>$endif$
+      <h1 class="post-title">$title$</h1>
+      $if(subtitle)$<h2>$subtitle$</h2>$endif$
+    </header>
+    <div class="post-meta">
       <img class="profile-pic" src="/img/profile.jpg" alt="">
       <h3 class="author">
         <span>Ossi Hanhinen</span>
         <a href="https://twitter.com/ohanhi">@ohanhi</a>
       </h3>
-    </header>
-    <p class="post-date">$date$</p>
+      <p class="post-date">$date$</p>
+    </div>
 
     <hr>
 
-    <strong>Read this to</strong>
+    <h3>Read this to</h3>
     <ul class="post-reasons">
       $for(read_this_to)$
         <li>$body$</li>
       $endfor$
     </ul>
 
-    <strong>I expect you to know</strong>
+    <h3>I expect you to know</h3>
     <ul class="post-prereqs">
       $for(i_expect_you_to_know)$
         <li>$body$</li>
