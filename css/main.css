@@ -132,9 +132,22 @@ img {
 
 blockquote {
   color: #666;
-  border-left: 2px solid #999;
+  border-left: 1px solid #999;
   padding: 0.5rem 0 0.5rem 1rem;
-  margin: 1em 0;
+  margin: 1rem 0 1rem -1rem;
+  font-style: italic;
+  font-family: Georgia, serif;
+}
+
+blockquote p {
+  font-size: 1.618em;
+  margin: 0;
+}
+
+blockquote cite {
+  font-style: normal;
+  font-family: Lato, sans-serif;
+  font-size: 0.618em;
 }
 
 cite {

@@ -9,7 +9,7 @@ read_this_to:
   - get an inside look into how Elm Native UI has evolved
 ---
 
-> [Elm Native UI](https://github.com/elm-native-ui/elm-native-ui) aims to let people build mobile apps in Elm using React Native.
+_[Elm Native UI](https://github.com/elm-native-ui/elm-native-ui) aims to let people build mobile apps in Elm using React Native._
 
 [![](/img/elm-native-dribbble.png)](https://github.com/elm-native-ui/elm-native-ui)
 <small class="caption">Elm Native UI [logo](https://dribbble.com/shots/2383347-Elm-Native-logo) by [Paul Young](http://paulyoung.me/)</small>

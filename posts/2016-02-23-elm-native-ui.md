@@ -9,9 +9,6 @@ read_this_to:
   - get an inside look into how Elm Native UI was made
 ---
 
-> **Edited Feb 24, 2016**<br>
-> Update on port-related parts: new simpler API and a note on future developments.
-
 We were at the [Reactive 2015](https://reactive2015.com/) conference in Bratislava in November. A lot of people I talked with were interested in Elm, and many asked whether it could be used with a) Node and b) React Native. I knew there was progress on the Node front, but at least [Richard Feldman](https://twitter.com/rtfeldman) hadn't heard anything about React Native being experimented with.
 
 Me and [André](http://staltz.com/) wanted to prove it was possible to write a React Native app using Elm. A weekend of hacking lead to [Elm Native UI](https://github.com/elm-native-ui/elm-native-ui) being born.
@@ -52,9 +49,7 @@ port viewTree =
   NativeApp.start { model = model, view = view, update = update, init = init }
 ```
 
-> **Note:** I updated the code sample above to reflect current `master` branch.
->
-> Also, Evan Czaplicki, the creator of Elm, contacted me after this post was first published. He said "Supporting a new platform is something that can get special help from the language", so I am hopeful this will become even nicer in the future!
+**Note:** Evan Czaplicki, the creator of Elm, contacted me after this post was first published. He said "Supporting a new platform is something that can get special help from the language", so I am hopeful this will become even nicer in the future!
 
 
 ## Ping back

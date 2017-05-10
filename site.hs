@@ -83,10 +83,10 @@ pathToPostName path =
 postCtx :: Context String
 postCtx =
     dateField "date" "%B %-d, %Y"
-      `mappend` constField "base_url" "https://ohanhi.com"
+      `mappend` constField "base_url" "http://ohanhi.com"
       `mappend` fullTitleField "full_title" False
       `mappend` fullTitleField "twitter_text" True
-      `mappend` twitterUrlField "https://ohanhi.com"
+      `mappend` twitterUrlField "http://ohanhi.com"
       `mappend` listContextWith "i_expect_you_to_know"
       `mappend` listContextWith "read_this_to"
       `mappend` defaultContext

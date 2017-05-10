@@ -1,7 +1,12 @@
 <ul class="blog-posts">
-    $for(posts)$
-        <li>
-            <a href="$url$">$full_title$</a> - $date$
-        </li>
-    $endfor$
+  $for(posts)$
+    <li>
+      <a href="$url$">$full_title$</a> - $date$
+      <ul class="post-reasons">
+        $for(read_this_to)$
+          <li>$body$</li>
+        $endfor$
+      </ul>
+    </li>
+  $endfor$
 </ul>
