@@ -18,7 +18,7 @@ i_expect_you_to_know:
 - [0. Getting info from the DOM](#getting-info-from-the-dom)
 - [1. Package catalog](#package-catalog)
 - [2. Ports](#ports)
-- [3. Installing non-whitelisted packages](#installing-non-whitelisted-packages)
+- [3. Installing non-published packages](#installing-non-published-packages)
 - [4. elm-ffi](#elm-ffi)
 - [Conclusion](#conclusion)
 
@@ -146,7 +146,7 @@ myElmApp.ports.requestUuid.subscribe(function() {
 **Note**: Ports might strike you as an unnecessarily elaborate way of dealing with something "as simple as" calling external functions. However, once I understood how this approach made all communication to the outside completely safe and decoupled from the uncertainty of JavaScript, I came to really appreciate the idea. [Episode 13](https://elmtown.github.io/2017/05/09/history-in-elm-town-ports-episode-13.html) of the Elm Town podcast is entirely about the thought processes and design considerations behind ports, so I highly recommend listening to it in case you are interested.
 
 
-## 3. Installing non-whitelisted packages
+## 3. Installing non-published packages
 
 By default, packages containing ports or "native" JavaScript code are not accepted on the package catalog. Some packages have gone through an acceptance process and gotten whitelisted, but one can't simply wrap e.g. Moment.js or Google Maps and publish that to package.elm-lang.org.
 
@@ -161,6 +161,8 @@ $ elm-package install
 # when you have non-published packages in your elm-package.json
 $ elm-install
 ```
+
+**Note**: As well as packages containing JavaScript, you can use elm-install for installing "private packages" from any Git repository or even your own hard drive. See the [advanced usage](https://github.com/gdotdesign/elm-github-install#advanced-usage) section on the readme for more info.  
 
 
 ## 4. elm-ffi
@@ -200,6 +202,8 @@ Then use the tool on the command line:
 ```bash
 $ elm-install
 ```
+
+I shouldn't even have to point out that using elm-ffi is a very easy way to make your Elm application unsafe. Only use it if you really deem it necessary.
 
 
 ## Conclusion
