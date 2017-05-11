@@ -1,6 +1,6 @@
 ---
-title: Elm in the day-to-day
-subtitle: Software Consultancy and Elm, how do they mix?
+title: Elm and the unknown
+subtitle: Using Elm for project work
 read_this_to:
   - understand how the constraints in Elm affect day-to-day work
   - know some common cases when you need to reach out to JavaScript
@@ -15,7 +15,7 @@ i_expect_you_to_know:
 - [Foreword](#foreword)
 - [What sort of a risk is using Elm?](#what-sort-of-a-risk-is-using-elm)
 - [When do we need interop?](#when-do-we-need-interop)
-- [0. Getting info from the DOM](#getting-info-from-the-dom)
+- [Preface: Getting info from the DOM](#preface-getting-info-from-the-dom)
 - [1. Package catalog](#package-catalog)
 - [2. Ports](#ports)
 - [3. Installing non-published packages](#installing-non-published-packages)
@@ -34,18 +34,18 @@ I believe anyone who has worked as a developer knows how to weigh possible solut
 
 This balancing act also affects people evaluating technology choices: they need to feel safe with the choice they are making. The technology needs to have a certain level of "getshitdonefulness" so that if the day comes when a deadline is looming like a dark cloud above your head, you know you can get it done.
 
-Elm has gained a great reputation with its beautiful ideology that enforces purity and statelessness. But this is not a solely positive aspect. When it comes to "quick hacks" or wrapping existing JavaScript libraries, Elm seems not to be very allowing. In this post, I explain the tools and strategies to use when Elm's restrictions or relatively smaller ecosystem comes in the way of meeting a deadline.
+Elm has gained a great reputation with its beautiful ideology that enforces purity and statelessness. But this is not a solely positive aspect. When it comes to "quick hacks" or wrapping existing JavaScript libraries, Elm seems to be a hindrance. In this post, I explain the tools and strategies to use when Elm's restrictions or relatively smaller ecosystem come in the way of meeting a deadline.
 
 
 ## What sort of a risk is using Elm?
 
-Elm is a young language as far as programming languages go. It had its first version released in 2012, and it is a <abbr title="Benevolent Dictator For Life">BDFL</abbr> sort of a language like Python. This means there is a single person who guides the language design and prepares new releases. For Elm, this is [Evan Czaplicki](https://twitter.com/czaplic) (for Python, it's [Guido va n Rossum](https://twitter.com/gvanrossum)). There is a strong but fairly small community around the core development of Elm.
+Elm is a young language as far as programming languages go. First version was released in 2012, and it is a <abbr title="Benevolent Dictator For Life">BDFL</abbr> sort of a language like Python. This means there is a single person who guides the language design and prepares new releases. For Elm, this is [Evan Czaplicki](https://twitter.com/czaplic) (for Python, it's [Guido van Rossum](https://twitter.com/gvanrossum)). There is a strong but fairly small community around the core development of Elm.
 
-Elm is ready to be used for production. Many companies, such as [Pivotal Tracker](https://www.pivotaltracker.com/blog/Elm-pivotal-tracker/) and [Ableton](https://twitter.com/AbletonDev/status/861580662620508160), are already using it for real customer-facing things. I have used Elm in two big customer projects myself and another customer project by Futurice was just open sourced ([GitHub](https://github.com/Tradenomiliitto/tradenomiitti)).
+Elm is ready to be used for production. Many companies, such as [Pivotal Tracker](https://www.pivotaltracker.com/blog/Elm-pivotal-tracker/) and [Ableton](https://twitter.com/AbletonDev/status/861580662620508160), are already using it for real customer-facing things. I have used Elm in two big customer projects myself and another customer project by Futurice was just open sourced ([source on GitHub](https://github.com/Tradenomiliitto/tradenomiitti)).
 
 Personally I've never felt blocked by Elm. As I mentioned, I have used Elm in two customer projects, one of which was heavily based on drag and drop and the other one had things like image uploading. For both of these, I used ports and had no trouble at all (except for dealing with the HTML5 Drag and Drop API).
 
-The language is still in flux, and some [big changes](http://elm-lang.org/blog/farewell-to-frp) have shook up the user community. Removing Signals was definitely the biggest and boldest move I've seen in language design, and it happened right in the middle of the latter customer project. Keeping a cool head, we waited for a few weeks for the dependencies to be updated, and then I took the plunge.
+The language is still in flux, and some [big changes](http://elm-lang.org/blog/farewell-to-frp) have shook up the user community. Removing Signals was definitely the biggest and boldest move I've seen in language design, and it happened right in the middle of one of our customer projects. Keeping a cool head, we waited for a few weeks for the dependencies to be updated, and then I took the plunge.
 
 It took me two working days to get the entire codebase to compile again. Once it did, all but one of our end-to-end tests passed. I had figured that while I was already working on the entire codebase, I could also make some refactoring to how our user authentication worked. The test failed because I had forgotten to wire up something related to logging out. Once that was done, it all worked again.
 
@@ -62,7 +62,7 @@ There are three major cases where you may be forced to get outside the safety of
 
 1. Direct access to the DOM
 2. Web platform stuff not yet implemented in Elm
-2. Large and/or closed-source third party JavaScript like maps, live customer service chats etc.
+3. Large and/or closed-source third party JavaScript like maps, live customer service chats etc.
 
 For anything else, you can stay within Elm, albeit it might take a little more time to code the feature.
 
@@ -85,9 +85,9 @@ In all of the above cases, the Elm Slack ([join here](http://elmlang.herokuapp.c
 Now that you have an idea of when some sort of interop is often needed, let's go through the different strategies in the order I would personally use them. The priorities may be a little bit opinionated, so feel free to make your own judgment.
 
 
-## 0. Getting info from the DOM
+## Preface: Getting info from the DOM
 
-As a preface: if all you need is to get some information from the DOM, there may be a way to do that in pure Elm. Soren Debois has written [a whole article](https://medium.com/@debois/elm-the-dom-8c9883190d20) on the subject, but it really boils down to this: you can decode any data from a DOM event by attaching a custom listener with `Html.Events.on`. I use this technique in my [autoexpanding textarea](http://package.elm-lang.org/ohanhi/autoexpand/latest) ([source code](https://www.github.com/ohanhi/autoexpand/)).
+If all you need is to get some information from the DOM, there may be a way to do that in pure Elm. Soren Debois has written [a whole article](https://medium.com/@debois/elm-the-dom-8c9883190d20) on the subject, but it really boils down to this: you can decode any data from a DOM event by attaching a custom listener with `Html.Events.on`. I use this technique in my [autoexpanding textarea](http://package.elm-lang.org/ohanhi/autoexpand/latest) ([source code](https://www.github.com/ohanhi/autoexpand/)).
 
 
 ## 1. Package catalog
