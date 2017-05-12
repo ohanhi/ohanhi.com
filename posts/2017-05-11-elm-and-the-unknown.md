@@ -37,6 +37,35 @@ This balancing act also affects people evaluating technology choices: they need 
 Elm has gained a great reputation with its beautiful ideology that enforces purity and statelessness. But this is not a solely positive aspect. When it comes to "quick hacks" or wrapping existing JavaScript libraries, Elm seems to be a hindrance. In this post, I explain the tools and strategies to use when Elm's restrictions or relatively smaller ecosystem come in the way of meeting a deadline.
 
 
+## Choose the right tool for the job
+
+After posting this article, we had a brief discussion with a coworker. He had a good point that I had not adequately stressed in this article: some kinds of applications are better for Elm than others.
+
+The tools we use are intrinsically tied to the demands of the products and services we build. Choose the best fit, not the one you currently like best or are most familiar with. Familiarity grows over time, but poor technology choices will slowly but surely take their toll over the course of the project.
+
+[Miro](https://twitter.com/mironieminen) gave his consent to use this in the post.
+
+---
+
+**Miro**: extremely interesting<br>
+**Miro**: I'd like to challenge your conclusions a little bit - because I doubt everything and I'm not really yet sold with Elm. for eg the maps example, it seems that it can be done, but would you do an app which needs heavy maps integration with Elm?<br>
+**Miro**: and what about the changes to the language, there was mention about 2-day refactor required by it - what is your gut feeling, are there more radical changes like that still to be expected?<br>
+**Miro**: actually that previous thread about this is a good one [link within our internal chat]<br>
+
+**ohanhi**: @Miro, If the application is a map app, I wouldn't do it in Elm.<br>
+**ohanhi**: There are cases where Elm is a great choice, there are cases where React is a great choice and there are cases where Handlebars and vanilla JS is a great choice<br>
+**ohanhi**: I am definitely not saying that Elm is the _End-all And Only Best Solution For Frontend Get It Now for 49.99!_<br>
+**ohanhi**: As with all things, you as a consultant need to consider the fitness of the technology to your overall understanding of what the application is supposed to be.<br>
+
+**Miro**: yeah I know - and thank you for the tip; that &amp; the article itself was really good
+
+**ohanhi**: Cool, thanks. I'll add it.
+
+---
+
+I hope this clears things up for the rest of you, too!
+
+
 ## What sort of a risk is using Elm?
 
 Elm is a young language as far as programming languages go. First version was released in 2012, and it is a <abbr title="Benevolent Dictator For Life">BDFL</abbr> sort of a language like Python. This means there is a single person who guides the language design and prepares new releases. For Elm, this is [Evan Czaplicki](https://twitter.com/czaplic) (for Python, it's [Guido van Rossum](https://twitter.com/gvanrossum)). There is a strong but fairly small community around the core development of Elm.

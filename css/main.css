@@ -212,6 +212,10 @@ footer {
   margin: 0;
 }
 
+.u-pre-line {
+  white-space: pre-line;
+}
+
 code {
   font-family: 'Inconsolata', monospace;
   padding: 2px;
