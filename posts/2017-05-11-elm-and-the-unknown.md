@@ -13,6 +13,7 @@ i_expect_you_to_know:
 ## Table of contents
 
 - [Foreword](#foreword)
+- [Choose the right tool for the job](#choose-the-right-tool-for-the-job)
 - [What sort of a risk is using Elm?](#what-sort-of-a-risk-is-using-elm)
 - [When do we need interop?](#when-do-we-need-interop)
 - [Preface: Getting info from the DOM](#preface-getting-info-from-the-dom)
