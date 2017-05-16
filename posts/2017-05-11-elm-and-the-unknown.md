@@ -117,7 +117,7 @@ Now that you have an idea of when some sort of interop is often needed, let's go
 
 ## Preface: Getting info from the DOM
 
-If all you need is to get some information from the DOM, there may be a way to do that in pure Elm. Soren Debois has written [a whole article](https://medium.com/@debois/elm-the-dom-8c9883190d20) on the subject, but it really boils down to this: you can decode any data from a DOM event by attaching a custom listener with `Html.Events.on`. I use this technique in my [autoexpanding textarea](http://package.elm-lang.org/ohanhi/autoexpand/latest) ([source code](https://www.github.com/ohanhi/autoexpand/)).
+If all you need is to get some information from the DOM, there may be a way to do that in pure Elm. Soren Debois has written [a whole article](https://medium.com/@debois/elm-the-dom-8c9883190d20) on the subject, but it really boils down to this: you can decode any data from a DOM event by attaching a custom listener with `Html.Events.on`. I use this technique in my [autoexpanding textarea](http://package.elm-lang.org/packages/ohanhi/autoexpand/latest) ([source code](https://www.github.com/ohanhi/autoexpand/)).
 
 
 ## 1. Package catalog
