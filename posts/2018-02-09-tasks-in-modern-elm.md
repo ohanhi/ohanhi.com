@@ -21,7 +21,7 @@ Let's first take a look at how tasks work on their own, before we start bundling
 ```haskell
 now : Task x Time
 ```
-> Get the `Time` at the moment when this task is run.
+"Get the `Time` at the moment when this task is run."
 
 If you haven't been dealing with tasks before, you might find it strange that this is not a function that returns a `Cmd msg`. In fact, it is not a function at all but a constant value! What is going on?
 
@@ -87,7 +87,7 @@ From the [official documentation](http://package.elm-lang.org/packages/elm-lang/
 ```haskell
 andThen : (a -> Task x b) -> Task x a -> Task x b
 ```
-> Chain together a task and a callback. The first task will run, and if it is successful, you give the result to the callback resulting in another task. This task then gets run.
+"Chain together a task and a callback. The first task will run, and if it is successful, you give the result to the callback resulting in another task. This task then gets run."
 
 Okay, maybe using the tasks from the previous chapter will make this clearer. Let's imagine we have an API where we can ask for events from the past hour by providing a timestamp of "one hour ago". This example doesn't show the imports, decoders etc. to keep it down to the point.
 
@@ -95,7 +95,10 @@ Okay, maybe using the tasks from the previous chapter will make this clearer. Le
 getEventsFromPastHour : Cmd Msg
 getEventsFromPastHour =
     Time.now
-        |> Task.andThen (\currentTime -> getEventsFrom (currentTime - Time.hour))
+        |> Task.andThen
+            (\currentTime ->
+                getEventsFrom (currentTime - Time.hour)
+            )
         |> Task.attempt GotResult
 
 
@@ -115,7 +118,10 @@ And again, in Elm code:
 
 ```haskell
 Time.now
-    |> Task.andThen (\currentTime -> getEventsFrom (currentTime - Time.hour))
+    |> Task.andThen
+        (\currentTime ->
+            getEventsFrom (currentTime - Time.hour)
+        )
     |> Task.attempt GotResult
 ```
 
