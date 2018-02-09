@@ -107,6 +107,16 @@ getEventsFrom time =
 
 Let's try to put this in words.
 
-1. Find out what time it is
-  1. And then, with the current time, ask for events from an hour ago
-2. When done, tell me the results (good or bad)
+- Find out what time it is
+  - And then, ask for events from an hour before the current time
+- When done, tell me how it went
+
+And again, in Elm code:
+
+```haskell
+Time.now
+    |> Task.andThen (\currentTime -> getEventsFrom (currentTime - Time.hour))
+    |> Task.attempt GotResult
+```
+
+A full compilable example of this is again [on Ellie](https://ellie-app.com/3ZsdCNsjVa1/0). Sadly I couldn't find a suitable open API to showcase this, but you can see the requests in your browser dev tools.
