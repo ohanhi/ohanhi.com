@@ -75,6 +75,7 @@ pre {
 body {
   margin: 0;
   background-color: #fefefe;
+  background-color: hsla(0, 0%, 99%, 1);
   font-family: "Lato", sans-serif;
   font-weight: 400;
   line-height: 1.8;
@@ -308,21 +309,8 @@ pre {
 a {
   color: #4A148C;
   transition: all 0.2s ease;
-  text-decoration: none;
-  text-shadow:
-    -1px -1px 0 #fefefe,
-    1px -1px 0 #fefefe,
-    -1px 1px 0 #fefefe,
-    1px 1px 0 #fefefe;
-  background-image: linear-gradient(
-    to top,
-    #805aae 0px,
-    #805aae 1px,
-    transparent 1px,
-    transparent 100%
-  );
-  background-position: 0 -1px;
-};
+  text-decoration: underline;
+}
 
 a:visited {
   color: #4A148C;
