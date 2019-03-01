@@ -14,9 +14,11 @@ I have used Elm in two client projects spanning about three years total. In my l
 
 If you've used TypeScript in a project already, good for you! You can probably agree that the static types it provides can be a real help when adding new features. And where it really shines is refactoring. Changing function arguments or removing fields from a configuration object in a JavaScript project can be a very risky thing, but the TypeScript compiler can spot many places where things are going wrong. You can be much more confident that the code will work. Now imagine that was the case for every single change in the code base? And you could be 100% certain there are no places left using the old structure once you're done? That's what Elm can give you! Furthermore, the compiler will help you go through all the steps needed while adding a feature, but let's come back to that a bit later.
 
+Before we begin, I want to emphasize that I am not saying Elm is the best solution in all cases. There are very valid reasons to use React, Redux and TypeScript instead! There are valid reasons even for not using a framework at all. This post just focuses on the lovely things I know from Elm, compared to how the same thing worked in the React project. Do what you love and what feels like the best solution for the problem at hand. 💝
+
 ## Overview of similarities
 
-Let's start with comparing the vocabulary. How do React, Redux and TypeScript features relate to Elm in the overall context of building a single page app? You might have heard that Redux is [inspired by](https://github.com/reduxjs/redux#influences) the Elm architecture. This is very helpful, since it means we can draw some rather direct analogies between it and Elm. In React, stateless and pure components correspond to the way Elm views work. I won't talk about too many TypeScript features since they are not the point of this post.
+Let's start with comparing the vocabulary. How do React, Redux and TypeScript features relate to Elm in the overall context of building a single page app? You might have heard that Redux is [inspired by](https://github.com/reduxjs/redux#influences) the Elm architecture. This is very helpful, since it means we can draw some rather direct analogies between it and Elm. In React, components without any local state correspond to the way Elm views work. I won't talk about too many TypeScript features since they are not the point of this post.
 
 This table is a simplification for sure, but hopefully a helpful one.
 
@@ -31,20 +33,7 @@ This table is a simplification for sure, but hopefully a helpful one.
 
 All in all, the two "frameworks" provide comparable functionality and one can follow very similar coding patterns in both. The main differences are that in Elm you can only have one `model` and in Redux you could have several stores, and that there are no stateful views in Elm. Everything that changes the UI simply has to be in the `model`.  These might sound like big restrictions, but in my experience they really cut down on the bikeshedding we all end up doing in bigger projects. You never have to argue whether a slice of state should have its own store or not, or if the input value should go in the Redux store or local state. 
 
-With that, let's move on to covering the some points that we knew were especially nice about Elm and we had some trouble with in our React, Redux and TypeScript project!
-
-## Compiler helps you finish new features
-
-There are a good amount of places in the code base to go through when adding a new feature in Redux. You need to create the UI, event handler, action creator, action, and reducer branch. It's a lot to remember! TypeScript does not provide this kind of help,  
-
-In Elm, you can start with creating the UI part using a message name that doesn't exist yet, and the compiler will then guide you through all of the rest. I know this sounds silly, so let me demonstrate. Starting with the classic counter example you get when you head to [ellie-app.com/new](https://ellie-app.com/new), let's add a reset feature!
-
-1. Add a button to the UI (as line 38): `, button [ onClick Reset ] [ text "reset" ]`.
-    <br>➤ Compile. The message will say "I cannot find a \`Reset\` constructor"
-2. Realize you need the new message, add `| Reset` to the Msg type (as line 20).
-    <br>➤ Compile. The message will say "This \`case\` does not have branches for all possibilities" and mention the missing Reset branch.
-3. Recall you need to add the branch to the `update` (eg. as line 32): `Reset -> initialModel`.
-    <br>➤ Compile. The program will compile and have a new feature: _a fully working reset button_ 🎉!
+With that, let's move on to covering some points that we knew were especially nice about Elm and we had some trouble with in our React, Redux and TypeScript project!
 
 ## Everything is safe
 
@@ -58,11 +47,32 @@ To me, the single most appealing feature of a statically typed language is that 
 
 In Elm, the package manager knows the types. They are an intrinsic feature of all Elm packages and not something you can omit or get wrong -- all types in the code must match the documentation for the package to be publishable. Speaking of, all Elm packages have to have documentation for every single function they expose, and semantic versioning is enforced by the compiler too. What's super nice for the user is that all packages have their documentation in the same place ([package.elm-lang.org](https://package.elm-lang.org/)) formatted the same way.
 
+The package ecosystem in Elm is very different from npm. There are far fewer packages, and I feel on average they are incredibly well designed and documented. In general, you don't need many dependencies at all for building a big project -- the language core provides lodash-like utilities and such by default. Things like [sortable tables][table], [date pickers][date], [charts][chart] and [visualizations][viz] have one or two packages that almost everyone needing them uses. On the other hand, there are things that do not exist in Elm like Google Maps (though there are other map packages). For these, you can either [wrap them in Web Components][wc] or use ports, which allow you to freely but safely communicate with the JS land.
+
+[table]: https://package.elm-lang.org/packages/NoRedInk/elm-sortable-table/latest/
+[date]: https://package.elm-lang.org/packages/abradley2/elm-datepicker/latest/
+[chart]: https://package.elm-lang.org/packages/terezka/line-charts/latest/
+[viz]: https://package.elm-lang.org/packages/gampleman/elm-visualization/latest/
+[wc]: https://dev.to/lukewestby/talk-when-and-how-to-use-web-components-with-elm-f85
+
+## Compiler helps you finish new features
+
+There are a good amount of places in the code base to go through when adding a new feature in Redux. You need to create the UI, event handler, action creator, action, and reducer branch. It's a lot to remember! TypeScript does not help me remember what parts of the code I was supposed to touch -- which makes total sense as you can use it for so many other things besides Redux apps.
+
+In Elm, you can start with creating the UI part using a message name that doesn't exist yet, and the compiler will then guide you through all of the rest. I know this sounds silly, so let me demonstrate. Starting with the classic counter example you get when you head to [ellie-app.com/new](https://ellie-app.com/new), let's add a reset feature!
+
+1. Add a button to the UI (as line 38): `, button [ onClick Reset ] [ text "reset" ]`.
+    <br>➤ Compile. The message will say "I cannot find a \`Reset\` constructor"
+2. Realize you need the new message, add `| Reset` to the Msg type (as line 20).
+    <br>➤ Compile. The message will say "This \`case\` does not have branches for all possibilities" and mention the missing Reset branch.
+3. Recall you need to add the branch to the `update` (eg. as line 32): `Reset -> initialModel`.
+    <br>➤ Compile. The program will compile and have a new feature: _a fully working reset button_ 🎉!
+
 ## All of the code has good typings
 
 A lovely feature in modern statically typed languages, like TypeScript, is type inference. This means the compiler can figure out the types in your code on its own. Unfortunately the compiler can get confused sometimes, like in the case of filtering specific types of things from an array.
 
-```js
+```javascript
 type MaybeMessage =
     | { type: 'has-message', message: string }
     | { type: 'no-message' }
@@ -82,7 +92,7 @@ This might sound weird but in my experience the type inference in Elm is flawles
 
 ## Validating data is not optional
 
-One of the things I've come to love the most in Elm was something I was most confused about when I first learning the language. JSON has to be decoded before the data can be used in your app. This might sound cumbersome and I have to admit it is a little. 
+One of the things I've come to love the most in Elm was something I was most confused about when I was first learning the language: JSON has to be decoded before the data can be used in your app. This might sound cumbersome and I have to admit it is a little. 
 
 However, the positives start to outweigh the negatives as soon as you find a discrepancy between what you expected the data to be and what it really is. If you are validating the data (and handling potential errors) right at the border of your app, there won't be any unexpected crashes even if the backend responds something totally strange. This means you immediately know what part of the codebase you need to be touching.
 
@@ -90,9 +100,9 @@ You can do this in TypeScript too with e.g. [io-ts](https://github.com/gcanti/io
 
 ## Conclusion
 
-If you read this far I want to thank you for your time! There are many many things to love about working with React, Redux and TypeScript. If you feel like you're happy with these technologies, feel free to keep using them! 
+If you read this far I want to thank you for your time! There are many many things to love about working with React, Redux and TypeScript. If you feel like you're happy with these technologies, feel free to keep using them! Also remember that there are places where the React-Redux world is ahead of Elm: notably there is no official way to do server side rendering or code-splitting in Elm as of yet. These are planned, but if you do need those now it's probably a good idea to hold off for a while still!
 
-If you did get interested in trying out Elm, I suggest starting with the official [guide](https://guide.elm-lang.org/) joining the super friedly and welcoming [Slack](http://elmlang.herokuapp.com/). Don't be afraid to ask any beginner questions either, the community loves to help people!
+If you did get interested in trying out Elm, I suggest starting with the official [guide](https://guide.elm-lang.org/) and then joining the super friedly and welcoming [Slack](http://elmlang.herokuapp.com/). Don't be afraid to ask any beginner questions either, the community loves to help people!
 
 ## Appendix: Code example comparison
 
@@ -151,7 +161,7 @@ There's no need for an action creator in Elm, `NameChanged` is now a function th
 
 TypeScript
 
-```js
+```javascript
 const MyComponent = (props: Props) => (
   <div>
     <input
@@ -182,7 +192,7 @@ In Elm, people use `elm/html`. It is just a collection of functions like `div` t
 
 TypeScript (adapted from [this post](https://medium.com/knerd/typescript-tips-series-proper-typing-of-react-redux-connected-components-eda058b6727d))
 
-```ts
+```javascript
 import * as React from 'react'
 import * as Redux from 'redux'
 // import Action and State from someplace
