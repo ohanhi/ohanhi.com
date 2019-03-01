@@ -41,6 +41,28 @@ With that, let's move on to covering some points that we knew were especially ni
 
 TypeScript is a superset of JavaScript, so it can never remedy the billion dollar mistake. Elm has done it. The way you deal with potentially non-existing values (like the first element in a list) is that you always have a fallback of some sort. This is incredibly reassuring. Even in a large codebase I have never seen before, I can be certain that changes I make will not cause runtime exceptions somewhere else. Also, no matter what kind of deadlines we've been under, there won't be unexplored paths that lead to crashes. We have much more time to focus on the logic bugs instead!
 
+If this idea seems unfamiliar, here's a concrete example of how this works in Elm. Converting a string to a floating point number is a simple case where things might not work out:
+
+```haskell
+showNumber maybeNumber =
+    case maybeNumber of
+        Just number ->
+            -- Great, we have the number so we can format it nicely!
+            formatNumberNicely number
+
+        Nothing ->
+            -- This is the fallback in case the number isn't there.
+            -- The code wouldn't compile without this branch.
+            "The conversion didn't work out"
+
+
+showNumber (String.toFloat "3.14159265") --> "3.14"
+
+showNumber (String.toFloat "3 stars") --> "The conversion didn't work out"
+```
+
+So in any case, we will get a string out of the `showNumber` function. In practice the best place to handle missing information is usually on the Html view itself. Content is loading? Show a loading view. Request failed? Show a failure view. 
+
 ## Reliable types for all packages
 
 To me, the single most appealing feature of a statically typed language is that as a developer I can rely 100% on things like function names and argument types to be correct when the compiler says "Success". If you've used TypeScript for a while, you have most likely come across packages that either don't provide any TypeScript type information, and you need community-provided typings that are out of sync with the package itself, or worse, the package includes typings that are downright incorrect. I have sadly had this experience several times in the past year.
