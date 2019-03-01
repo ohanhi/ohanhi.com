@@ -16,7 +16,7 @@ If you've used TypeScript in a project already, good for you! You can probably a
 
 ## Overview of similarities
 
-Let's start with comparing the vocabulary. How do React, Redux and TypeScript features relate to Elm in the overall context of building a single page app? You might have heard that Redux is [inspired by](https://github.com/reduxjs/redux#influences) the Elm architecture. This is very helpful, since it means we can draw some rather direct analogies between it and Elm. In React, stateless and pure components correspond to the way Elm views work. I try to be light on the TypeScript features since they are not the point of this post.
+Let's start with comparing the vocabulary. How do React, Redux and TypeScript features relate to Elm in the overall context of building a single page app? You might have heard that Redux is [inspired by](https://github.com/reduxjs/redux#influences) the Elm architecture. This is very helpful, since it means we can draw some rather direct analogies between it and Elm. In React, stateless and pure components correspond to the way Elm views work. I won't talk about too many TypeScript features since they are not the point of this post.
 
 This table is a simplification for sure, but hopefully a helpful one.
 
@@ -29,7 +29,7 @@ This table is a simplification for sure, but hopefully a helpful one.
 | updating state              | Redux reducer                   | `update`        |
 | effects (e.g. HTTP request) | `redux-loop`, `redux-saga`, ... | `Cmd` (command) |
 
-All in all, the two "frameworks" provide comparable functionality and one can follow a very similar coding patterns in both. The main differences are that in Elm you can only have one `model` and in Redux you could have several stores, and that there are no stateful views in Elm. Everything that changes the UI simply has to be in the `model`.  These might sound like big restrictions, but in my experience they really cut down on the bikeshedding we all end up doing in bigger projects. You never have to argue whether a slice of state should have its own store or not, or if the input value should go in the Redux store or local state. 
+All in all, the two "frameworks" provide comparable functionality and one can follow very similar coding patterns in both. The main differences are that in Elm you can only have one `model` and in Redux you could have several stores, and that there are no stateful views in Elm. Everything that changes the UI simply has to be in the `model`.  These might sound like big restrictions, but in my experience they really cut down on the bikeshedding we all end up doing in bigger projects. You never have to argue whether a slice of state should have its own store or not, or if the input value should go in the Redux store or local state. 
 
 With that, let's move on to covering the some points that we knew were especially nice about Elm and we had some trouble with in our React, Redux and TypeScript project!
 
