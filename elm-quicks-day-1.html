@@ -1,0 +1,104 @@
+<!DOCTYPE html>
+<html class="no-js">
+<head>
+  <meta charset="utf-8">
+  <meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1">
+  <title> Check palindromes in Elm - Ossi Hanhinen</title>
+  <meta name="description" content="Check palindromes in Elm">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <link rel="stylesheet" href="./css/main.css">
+</head>
+<body>
+  <section class="contain post">
+    <a href="./" class="back-link">&laquo; Home</a>
+
+    <header class="post-header">
+  
+  <h3>elm-quicks 1</h3>
+  
+  <h1 class="post-title">Check palindromes in Elm</h1>
+  
+</header>
+<div class="post-meta">
+  <img class="profile-pic" src="./img/profile_tiny.jpg" alt>
+  <h3 class="author">
+    <span>Ossi Hanhinen</span>
+    <a href="https://twitter.com/ohanhi">@ohanhi</a>
+  </h3>
+  <p class="post-date">October 20, 2017</p>
+</div>
+
+<hr>
+
+<h3>Read this to</h3>
+<ul class="post-reasons">
+  
+  <li>learn to build an Elm program that accomplishes a simple task</li>
+  
+</ul>
+
+<h3>I expect you to know</h3>
+<ul class="post-prereqs">
+  
+  <li>map and filter</li>
+  
+</ul>
+
+<hr> <p>I teach Elm to my co-workers at Futurice by live-coding each Friday that I can. After each session, I publish the code produced and write a short post explaining the topics covered that time.</p>
+<p>This is the first post in the series.</p>
+<p>All code can be found on <a href="https://github.com/ohanhi/elm-quicks">GitHub</a>.</p>
+<h2 id="day-1-check-that-palindrome">Day 1: Check that palindrome</h2>
+<p>For the first day of live-coding on elm-quicks we created a tiny program that can tell whether a phrase is a palindrome or not. We started with the most simple Elm program possible:</p>
+<div class="sourceCode"><pre class="sourceCode haskell"><code class="sourceCode haskell"><span class="kw">import </span><span class="dt">Html</span>
+
+main <span class="fu">=</span>
+    Html.text <span class="st">&quot;Hello Elm&quot;</span></code></pre></div>
+<p>Next, we added a potential palindrome and a stub for a function that would check the palindrome-ness of a string.</p>
+<div class="sourceCode"><pre class="sourceCode haskell"><code class="sourceCode haskell">palindrome <span class="fu">=</span>
+    <span class="st">&quot;Are we not drawn onward, we few, drawn onward to new era?&quot;</span>
+
+isPalindrome input <span class="fu">=</span>
+    <span class="dt">False</span></code></pre></div>
+<p>This was then used in <code>main</code>:</p>
+<div class="sourceCode"><pre class="sourceCode haskell"><code class="sourceCode haskell">main <span class="fu">=</span>
+    Html.text (toString (isPalindrome palindrome))</code></pre></div>
+<p><code>toString</code> was needed to turn the boolean value from <code>isPalindrome</code> into a string, which is what <code>Html.text</code> expects to receive.</p>
+<p>From then on, we filled out the logic for the function in a <code>let-in</code> structure. The <code>let</code> block is where you can define local variables for a function. The code after <code>in</code> is the actual function body. We also used <code>Debug.log</code> at times to make sure things looked like we thought they should.</p>
+<p>The idea for how we can check for palindrome-ness was: turn the phrase into lower case letters only, and then check if it is equal to its reverse. At the live-coding session, I used a silly method to check if a character is a letter. Thanks to one of the participants I found a much nicer way to do this, so the final code looks like this:</p>
+<div class="sourceCode"><pre class="sourceCode haskell"><code class="sourceCode haskell">isPalindrome input <span class="fu">=</span>
+    <span class="kw">let</span>
+        characters <span class="fu">=</span>
+            <span class="dt">String</span><span class="fu">.</span>toList (<span class="dt">String</span><span class="fu">.</span>toLower input)
+
+        justLetters <span class="fu">=</span>
+            List.filter <span class="dt">Char</span><span class="fu">.</span>isLower characters
+
+        lettersInReverse <span class="fu">=</span>
+            List.reverse justLetters
+    <span class="kw">in</span>
+    justLetters <span class="fu">==</span> lettersInReverse</code></pre></div>
+<p>The entire code can be found here: <a href="https://github.com/ohanhi/elm-quicks/tree/master/day-01">day-01</a>.</p>
+
+    <div class="post-footer">
+      Maybe your followers would be interested in this post?
+      <a href="https://twitter.com/intent/tweet?original_referer=http%3A%2F%2Fohanhi.com%2Felm-quicks-day-1.html&amp;text=elm-quicks%201%3A%20Check%20palindromes%20in%20Elm&amp;url=http%3A%2F%2Fohanhi.com%2Felm-quicks-day-1.html&amp;via=ohanhi" rel="nofollow" target="_blank">Get tweety with it!</a>
+    </div>
+
+  </section>
+  <footer>
+    <a href="https://twitter.com/ohanhi">Twitter</a>
+    &ndash;
+    <a href="https://github.com/ohanhi">GitHub</a>
+  </footer>
+
+  <script src="js/main.js"></script>
+  <script>
+  (function(b,o,i,l,e,r){b.GoogleAnalyticsObject=l;b[l]||(b[l]=
+    function(){(b[l].q=b[l].q||[]).push(arguments)});b[l].l=+new Date;
+    e=o.createElement(i);r=o.getElementsByTagName(i)[0];
+    e.src='https://www.google-analytics.com/analytics.js';
+    r.parentNode.insertBefore(e,r)}(window,document,'script','ga'));
+    ga('create','UA-58943555-1');ga('send','pageview');
+    </script>
+  </body>
+  </html>

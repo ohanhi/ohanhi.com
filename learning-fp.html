@@ -1,0 +1,287 @@
+<!DOCTYPE html>
+<html class="no-js">
+<head>
+  <meta charset="utf-8">
+  <meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1">
+  <title> Learning FP the hard way - Ossi Hanhinen</title>
+  <meta name="description" content="Learning FP the hard way">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <link rel="stylesheet" href="./css/main.css">
+</head>
+<body>
+  <section class="contain post">
+    <a href="./" class="back-link">&laquo; Home</a>
+
+    <header class="post-header">
+  
+  <h1 class="post-title">Learning FP the hard way</h1>
+  
+  <h2>Experiences on the Elm language</h2>
+  
+</header>
+<div class="post-meta">
+  <img class="profile-pic" src="./img/profile_tiny.jpg" alt>
+  <h3 class="author">
+    <span>Ossi Hanhinen</span>
+    <a href="https://twitter.com/ohanhi">@ohanhi</a>
+  </h3>
+  <p class="post-date">June 10, 2015</p>
+</div>
+
+<hr>
+
+<h3>Read this to</h3>
+<ul class="post-reasons">
+  
+  <li>get a gentle introduction to Elm and some of its core concepts</li>
+  
+</ul>
+
+<h3>I expect you to know</h3>
+<ul class="post-prereqs">
+  
+  <li>some JavaScript</li>
+  
+</ul>
+
+<hr> <p>Originally published as a <a href="https://gist.github.com/ohanhi/0d3d83cf3f0d7bbea9db">public Gist</a></p>
+<p>with the support of <a href="http://futurice.com/">Futurice</a>.</p>
+<p>Licensed under <a href="https://creativecommons.org/licenses/by/4.0/">CC BY 4.0</a>.</p>
+<h2 id="foreword">Foreword</h2>
+<p>A good friend of mine convinced me about the benefits of <a href="https://gist.github.com/staltz/868e7e9bc2a7b8c1f754"><em>Reactive Programming</em></a> not that long ago. It almost feels wrong not to write <em>Functional Reactive Programming</em> – apparently the functional methodology lends itself magnificently to complement reactive programming. How, I did not know. So I decided to learn this stuff.</p>
+<p>Knowing myself, I soon realized I would only ever get in the mindset if I had to solve some actual problems using the techniques. Having written JavaScript for the past few years, I could have just gone for RxJS. But again, I knew myself and felt it would give me way too much room for “going against the grain”. I needed something that would enforce me to solve everything in a functional manner. This is where Elm comes in.</p>
+<h3 id="elm-whats-that">Elm? What’s that?</h3>
+<p><a href="http://elm-lang.org/">Elm</a> is a programming language that compiles to HTML5: HTML, CSS and JavaScript. Depending on how you display your output, it may be a <code>&lt;canvas&gt;</code> with objects inside, or a more traditional web page. Let me repeat. Elm is a language, which compiles into the <em>three languages</em> used to build web apps. What’s more, it is a functional reactive programming language with strong types and immutable data structures.</p>
+<p>Okay, so you may have gathered I am no expert in this field, but in case you’re lost, here are my short explanations on the terminology: <a href="#appendix-glossary">Appendix: Glossary</a>.</p>
+<h2 id="part-i.-restriction-proves-helpful">Part I. Restriction proves helpful</h2>
+<p>I decided to try and make a Space Invaders type of game (or a base for one) with Elm. Let’s first consider how it works from the player’s perspective. - There is a ship representing the player near the bottom of the screen - The player can move the ship left and right with corresponding arrow buttons - The player can shoot with the up arrow</p>
+<p>Okay, let’s switch the point of view now and revise from the ship’s perspective. - Ship has a position on a 1D axis - Ship can have a velocity (left or right) - Ship changes position according to its velocity - Ship can be shooting or not</p>
+<p>This basically gave me a definition of what the <code>Ship</code> should look like as a data structure, or a <a href="http://elm-lang.org/guide/core-language#records">Record</a> in Elm terminology. Although optional, I like to define these things as type aliases, which will allow the use of <code>Ship</code> in type annotations.</p>
+<div class="sourceCode"><pre class="sourceCode haskell"><code class="sourceCode haskell"><span class="kw">type</span> alias <span class="dt">Ship</span> <span class="fu">=</span>
+  { position <span class="fu">:</span> <span class="dt">Float</span>  <span class="co">-- just 1 degree of freedom (left-right)</span>
+  , velocity <span class="fu">:</span> <span class="dt">Float</span>  <span class="co">-- either 0, 1 or -1</span>
+  , shooting <span class="fu">:</span> <span class="dt">Bool</span>
+  }</code></pre></div>
+<p>Nice. Now let’s create one of those things then.</p>
+<div class="sourceCode"><pre class="sourceCode haskell"><code class="sourceCode haskell">initShip <span class="fu">:</span> <span class="dt">Ship</span>   <span class="co">-- this is the type annotation</span>
+initShip <span class="fu">=</span>
+  { position <span class="fu">=</span> <span class="dv">0</span>      <span class="co">-- the type is Float</span>
+  , velocity <span class="fu">=</span> <span class="dv">0</span>      <span class="co">-- Float</span>
+  , shooting <span class="fu">=</span> <span class="dt">False</span>  <span class="co">-- Bool</span>
+  }</code></pre></div>
+<p>So we got to an interesting point already. Take another look at the definition above. Is it a simple statement? Is it a function definition? It doesn’t matter! <code>initShip</code> can be thought of either as just the literal record defined, or a function that always returns that record. Because the function is pure, and the data structure is immutable, there is no way to distinguish between those. Wow, cool.</p>
+<blockquote>
+<p><em>Sidenote:</em> If you’re like me, you’re now thinking what happens if you try to reassign the <code>initShip</code>. Well, a compile-time error happens: “Name Collision: There can only be one definition of ‘foo’.”</p>
+</blockquote>
+<p>Alright, moving on to moving the ship! I remember from high school that _s = v*dt_, or moved distance is the velocity times timedifference. So that’s how I want to update my ship. In Elm, that would be something like the following.</p>
+<div class="sourceCode"><pre class="sourceCode haskell"><code class="sourceCode haskell">applyPhysics <span class="fu">:</span> <span class="dt">Float</span> <span class="ot">-&gt;</span> <span class="dt">Ship</span> <span class="ot">-&gt;</span> <span class="dt">Ship</span>
+applyPhysics dt ship <span class="fu">=</span>
+  { ship <span class="fu">|</span> position <span class="fu">=</span> ship<span class="fu">.</span>position <span class="fu">+</span> ship<span class="fu">.</span>velocity <span class="fu">*</span> dt }</code></pre></div>
+<p>The type annotation says: given a <code>Float</code> and a <code>Ship</code>, I will return a <code>Ship</code>, but also: given a <code>Float</code>, I will return <code>Ship -&gt; Ship</code>. For example, <code>(applyPhysics 16.7)</code> would actually return a working function to which we can pass a <code>Ship</code>, and get the physics-applied ship as the return value. This property is called <a href="http://en.wikipedia.org/wiki/Currying">Currying</a> and all Elm functions automatically behave this way.</p>
+<blockquote>
+<p><em>Sidenote:</em> So what’s the point of all this? Well, say I want to create a cross-reference table of two lists of values of <code>Item</code>. I know how to formulate that as “given a list and a simple value, find matching items from the list”, or <code>findMatches : List -&gt; Item -&gt; List</code>. But I need to map the other list with something that “already knows” the previous list. That’s where currying is great: I can just go <code>crossReference = map (findMatches listA) listB</code> and be done with it. <code>(findMatches listA)</code> is a function of type <code>Item -&gt; List</code>, which is exactly what the doctor ordered.</p>
+</blockquote>
+<p>Now getting back to the actual subject, <code>applyPhysics</code> created a new record, using the given <code>Ship</code> as a base, while setting the <code>position</code> to something different. That is what the <code>{ ship | position = .. }</code> syntax means. For more on this, see <a href="http://elm-lang.org/guide/core-language#records">Updating Records</a>.</p>
+<p>Updating the other two properties of the ship can be done similarly:</p>
+<div class="sourceCode"><pre class="sourceCode haskell"><code class="sourceCode haskell">updateVelocity <span class="fu">:</span> <span class="dt">Float</span> <span class="ot">-&gt;</span> <span class="dt">Ship</span> <span class="ot">-&gt;</span> <span class="dt">Ship</span>
+updateVelocity newVelocity ship <span class="fu">=</span>
+  { ship <span class="fu">|</span> velocity <span class="fu">=</span> newVelocity }
+
+updateShooting <span class="fu">:</span> <span class="dt">Bool</span> <span class="ot">-&gt;</span> <span class="dt">Ship</span> <span class="ot">-&gt;</span> <span class="dt">Ship</span>
+updateShooting isShooting ship <span class="fu">=</span>
+  { ship <span class="fu">|</span> shooting <span class="fu">=</span> isShooting }</code></pre></div>
+<p>Putting it all together to get the current version of the ship, we could do something like this:</p>
+<div class="sourceCode"><pre class="sourceCode haskell"><code class="sourceCode haskell"><span class="co">-- represents pressing the arrow buttons</span>
+<span class="co">-- x and y go from -1 to 1, and stay at 0 if nothing is pressed</span>
+<span class="kw">type</span> alias <span class="dt">Keys</span> <span class="fu">=</span> { x <span class="fu">:</span> <span class="dt">Int</span>, y <span class="fu">:</span> <span class="dt">Int</span> }
+
+update <span class="fu">:</span> <span class="dt">Float</span> <span class="ot">-&gt;</span> <span class="dt">Keys</span> <span class="ot">-&gt;</span> <span class="dt">Ship</span> <span class="ot">-&gt;</span> <span class="dt">Ship</span>
+update dt keys ship <span class="fu">=</span>
+  <span class="kw">let</span> newVel      <span class="fu">=</span> toFloat keys<span class="fu">.</span>x  <span class="co">-- `let` defines local variables for `in`</span>
+      isShooting  <span class="fu">=</span> keys<span class="fu">.</span>y <span class="fu">&gt;</span> <span class="dv">0</span>
+  <span class="kw">in</span>  updateVelocity newVel (updateShooting isShooting (applyPhysics dt ship))</code></pre></div>
+<p>Now if I could just call <code>update</code> 30 times per second, giving it the time difference from last update, the keys pressed and the previous incarnation of <code>ship</code>, I’d have a nice little game model going on. Except of course I couldn’t see anything since there is no render… but in principle.</p>
+<p>So let’s just quickly recap what’s happened thus far.</p>
+<ul>
+<li>Type aliases define data models</li>
+<li>All data is immutable</li>
+<li>Type annotations clarify the goal of the function</li>
+<li>All of the functions are pure</li>
+</ul>
+<p>Actually, there is no way to accidentally change state in the language. Also, there are no loops of any kind.</p>
+<p>I’ve covered quite a lot of ground already with my game. There is a model and all functions that update the model have been defined. Only trouble is that all of the functions operate based on the ship from the previous update. Remember, in Elm you cannot store the state in the shared scope in any way, not even for the current module – there are no ways to alter anything that’s been defined before. So how can anything really change in the program?</p>
+<h2 id="part-ii.-state-is-a-result-of-an-immutable-past">Part II. State is a result of an immutable past</h2>
+<p>This is the point where some mind-bending realizations need to happen. In the object oriented programming approach, the state of a program is “scattered” among several entities. The <code>Ship</code> in this case would be a class and <code>myShip</code> would be an instance of that class. At any given time during the program, <code>myShip</code> would know the value of its position and other attributes. Not so in functional programming. At any given time during the program, <code>initShip</code> will simply be the same thing it was in the beginning. To get the relevant current state of things, I need to look at what has happened in the past. I need to use those happenings as input to the functions I’ve defined and only then I get the <code>Ship</code> as it currently should be. This quite the departure from what I am used to, so I will break down the process.</p>
+<h3 id="the-first-step">The first step</h3>
+<p>In the beginning there was <code>initShip</code> with its dull <code>0, 0, False</code> values. There were also functions that could transform a <code>Ship</code> into another <code>Ship</code>. In particular, there was the <code>update</code> function, which would take input and a ship to get an updated ship. I will repeat the function here, so you don’t need to scroll.</p>
+<div class="sourceCode"><pre class="sourceCode haskell"><code class="sourceCode haskell">update <span class="fu">:</span> <span class="dt">Float</span> <span class="ot">-&gt;</span> <span class="dt">Keys</span> <span class="ot">-&gt;</span> <span class="dt">Ship</span> <span class="ot">-&gt;</span> <span class="dt">Ship</span>
+update dt keys ship <span class="fu">=</span>
+  <span class="kw">let</span> newVel      <span class="fu">=</span> toFloat keys<span class="fu">.</span>x
+      isShooting  <span class="fu">=</span> keys<span class="fu">.</span>y <span class="fu">&gt;</span> <span class="dv">0</span>
+  <span class="kw">in</span>  updateVelocity newVel (updateShooting isShooting (applyPhysics dt ship))</code></pre></div>
+<p>So if <code>initShip</code> is the initial state of the model, I can go one step forward from that, at least. Elm programs define a <code>main</code> function, that gets run when the program starts, so let’s try showing <code>initShip</code> first. I import the <code>Graphics.Element</code> package to use the <code>show</code> function.</p>
+<div class="sourceCode"><pre class="sourceCode haskell"><code class="sourceCode haskell"><span class="kw">import </span><span class="dt">Graphics.Element</span> exposing (..)
+
+<span class="co">-- (other code)</span>
+main <span class="fu">:</span> <span class="dt">Element</span>
+main <span class="fu">=</span> show initShip</code></pre></div>
+<p>This gives us</p>
+<div class="sourceCode"><pre class="sourceCode haskell"><code class="sourceCode haskell">{ position <span class="fu">=</span> <span class="dv">0</span>, shooting <span class="fu">=</span> <span class="dt">False</span>, velocity <span class="fu">=</span> <span class="dv">0</span> }</code></pre></div>
+<p>Now if I want to go forward one step, I can apply the <code>update</code> function once before showing the ship. Let’s try that then. I set the <code>keys</code> so that left and up are being pressed to see some effects (<code>x</code> is -1 and <code>y</code> is 1).</p>
+<div class="sourceCode"><pre class="sourceCode haskell"><code class="sourceCode haskell">dt <span class="fu">=</span> <span class="dv">100</span>
+keys <span class="fu">=</span> { x <span class="fu">=</span> <span class="fu">-</span><span class="dv">1</span>, y <span class="fu">=</span> <span class="dv">1</span> }
+main <span class="fu">=</span> show (update dt keys initShip)</code></pre></div>
+<p>This gives us</p>
+<div class="sourceCode"><pre class="sourceCode haskell"><code class="sourceCode haskell">{ position <span class="fu">=</span> <span class="dv">0</span>, shooting <span class="fu">=</span> <span class="dt">True</span>, velocity <span class="fu">=</span> <span class="fu">-</span><span class="dv">1</span> }</code></pre></div>
+<p>All right! So this works! My ship is <code>shooting</code> because the up button is pressed, and it has a negative <code>velocity</code> to account for the left button being pressed. Notice how the <code>position</code> stayed the same, still. This is because I defined the update sequence to first apply physics and then update the other properties. <code>initShip</code>’s velocity was 0, so applying physics didn’t move it.</p>
+<h3 id="signals">Signals</h3>
+<p>At this point I’d like you to take your time and read <a href="http://elm-lang.org/guide/reactivity#signals">Signals on Elm-lang</a>, and if you’re interested, maybe even watch a video or two about the Elm Signals. I am going to assume you know what Signals are from now on.</p>
+<p>But just to recap: a signal is like a stream, where for any given point of time, there is a simple value. So a signal of mouse click count will always hold an integer - in other words, it is of type <code>Signal Int</code>. I could make a signal of ships, too, if I wanted: a <code>Signal Ship</code>, which would always hold a current <code>Ship</code>. But then I’d need to refactor all of my previous functions and take into account that the values are not simple, but in fact signals of that value… So I’ll heed the advice from Elm-lang.org: &gt; A common way to get stuck using signals is to try to use them too much. It is tempting to try to do everything with signals, but it is usually best to write as much code as possible without them.</p>
+<p>So my ship can move one step forward, but that’s not terribly exciting. I want it to move left when I am pressing left and vice versa. And most importantly, I want it to shoot when I press up!</p>
+<p>I have actually constructed my models and logic in a great way, because there happens to be a ready-made signal called <a href="http://package.elm-lang.org/packages/elm-lang/core/2.0.1/Time#fps"><code>fps n</code></a>, which updates <code>n</code> times per second. It tells the time difference from the last update. This is the <code>dt</code> I need. Furthermore, there is another built-in signal called <a href="http://package.elm-lang.org/packages/elm-lang/core/2.0.1/Keyboard#arrows"><code>Keyboard.arrows</code></a>, which holds the current arrow buttons in exactly the same way I defined <code>Keys</code>. This gets updated whenever there is a change.</p>
+<p>Okay, in order to get an interesting input signal, I will have to combine these two built-in signals so that “on each update of <code>fps</code>, check the status of <code>Keyboard.arrows</code> and report both of them”.</p>
+<ul>
+<li>“Both of them” sounds like a tuple, <code>(Float, Keys)</code></li>
+<li>“on each update” sounds like <a href="http://package.elm-lang.org/packages/elm-lang/core/2.0.1/Signal#sampleOn"><code>Signal.sampleOn</code></a></li>
+</ul>
+<p>In code, this should look something like the following.</p>
+<div class="sourceCode"><pre class="sourceCode haskell"><code class="sourceCode haskell"><span class="kw">import </span><span class="dt">Time</span> exposing (..)
+<span class="kw">import </span><span class="dt">Keyboard</span>
+
+<span class="co">-- (other code)</span>
+inputSignal <span class="fu">:</span> <span class="dt">Signal</span> (<span class="dt">Float</span>, <span class="dt">Keys</span>)
+inputSignal <span class="fu">=</span>
+  <span class="kw">let</span> delta <span class="fu">=</span> fps <span class="dv">30</span>
+      <span class="co">-- map the two signals into a tuple signal</span>
+      tuples <span class="fu">=</span> Signal.map2 (,) delta Keyboard.arrows
+  <span class="co">-- and update `inputSignal` whenever `delta` changes</span>
+  <span class="kw">in</span>  Signal.sampleOn delta tuples</code></pre></div>
+<p>Cool, now all I need to do is wire up my <code>main</code> so that the input is actually used with the <code>update</code> function. For this, I need <code>Signal.foldp</code>, or “fold from the past”. This is analogous to having a simpler fold like:</p>
+<div class="sourceCode"><pre class="sourceCode haskell"><code class="sourceCode haskell">summed <span class="fu">=</span> List.foldl (<span class="fu">+</span>) <span class="dv">0</span> [<span class="dv">1</span>,<span class="dv">2</span>,<span class="dv">3</span>,<span class="dv">4</span>,<span class="dv">5</span>]</code></pre></div>
+<p>Here we start with 0, then sum that up with 1, then sum that up with 2 and so on, until all the numbers are summed up, and we arrive at the return value of 15.</p>
+<p>So in short, this should make a lot of sense. <code>foldp</code> looks at the value at the “start of time” and folds the whole past of the signal to finally arrive at the present moment – the entire past of the program reduced to the present state. Mind.. Blown. Well, for me at least.</p>
+<p>Anyway, let’s see how that works in code. Now since I will have the <code>main</code> function update its results, it should also reflect that in its type, so I’ll make it a <code>Signal Element</code> instead of just <code>Element</code> like before.</p>
+<div class="sourceCode"><pre class="sourceCode haskell"><code class="sourceCode haskell">main <span class="fu">:</span> <span class="dt">Signal</span> <span class="dt">Element</span>
+main <span class="fu">=</span> Signal.map show (Signal.foldp update initShip inputSignal)</code></pre></div>
+<p>A couple of things are happening there:</p>
+<ol style="list-style-type: decimal">
+<li>I use <code>Signal.foldp</code> to apply <code>update</code> with the signal, starting with <code>initShip</code>.</li>
+<li>Folding still results in a signal, since it will continue updating the “folded state”.</li>
+<li>I use <code>Signal.map</code> to map the current value of my “folded state” to <code>show</code>.</li>
+</ol>
+<p>Only this results in a crapton of type errors, the bottom-most of which is the following.</p>
+<pre><code>Type mismatch between the following types on line 49, column 38 to 44:
+
+       Temp9243.Ship -&gt; Temp9243.Ship
+
+       Temp9243.Keys
+
+   It is related to the following expression:
+
+       update</code></pre>
+<p>Uhh… Well, at least I know where to look for. My function’s type signature looks like this: <code>update : Float -&gt; Keys -&gt; Ship -&gt; Ship</code>. However, what I’m passing to it is actually <code>(Float, Keys)</code> and <code>Ship</code>. So yeah, I’ll just change my function signature a little…</p>
+<div class="sourceCode"><pre class="sourceCode haskell"><code class="sourceCode haskell">update <span class="fu">:</span> (<span class="dt">Float</span>, <span class="dt">Keys</span>) <span class="ot">-&gt;</span> <span class="dt">Ship</span> <span class="ot">-&gt;</span> <span class="dt">Ship</span>
+update (dt, keys) ship <span class="fu">=</span>
+  <span class="co">-- the same as before</span></code></pre></div>
+<p>… and it works! 🎉</p>
+<p>I now have a fully functional model, updates and everything, for my game, in a total of 50 lines of code! The whole thing can be seen here: <a href="#gameelm">game.elm</a>. To see it in action, you can copy-paste the code into the <a href="http://elm-lang.org/try">Try Elm</a> interactive editor (in case nothing happens, click Compile and then the right-hand side of the screen, then press the arrow buttons).</p>
+<p>Again, a quick recap of what happened here:</p>
+<ul>
+<li>A signal is a function of time</li>
+<li>For each moment in time, there exists a pure value of a signal</li>
+<li><code>Signal.foldp</code> reduces the value in the same sense as <code>List.foldl</code></li>
+<li>Each state of the program is explicitly derived from all the things that have happened in the past</li>
+</ul>
+<h2 id="part-iii.-the-learnings">Part III. The learnings</h2>
+<p>There was a lot to learn in this endeavor for me. I hope you, too, have learned something while reading this. My personal (subjective) findings were:</p>
+<ul>
+<li>Types are actually pretty nice - and useful</li>
+<li>Immutability and restricting global state didn’t feel that strange after all</li>
+<li>Functional programming in Elm is very terse and very readable</li>
+<li>FP makes input and output explicit</li>
+<li>Because of the whole idea of state is so different, it is a bit tricky to grasp, but it does make a lot of sense</li>
+<li>There are no worries about bugs due to weird mixed state as the state is always a direct result of input</li>
+<li>Listening in on updates (reactive), rather than causing things to change (imperative) felt good</li>
+</ul>
+<p>One last thing: <em>if you liked this article, please consider sharing it with your friends. Sharing is caring!</em></p>
+<h2 id="appendix-glossary">Appendix: Glossary</h2>
+<p><strong>Immutable data</strong> means that once you assign a value to something, it cannot be changed. Take a JavaScript <code>Array</code> for example. If it was immutable, <code>myArray.push(item)</code> could not change (mutate) the existing <code>myArray</code>, but would instead return a new one with the same items plus the new one.</p>
+<p><strong>Strongly typed</strong> languages look to prevent unexpected behavior by disallowing using a string in place of an integer, for example. Languages like Scala, Haskell and Elm utilize <a href="http://en.wikipedia.org/wiki/Strong_and_weak_typing#Static_type-checking">static type checking</a> to prevent compiling altogether when there is a type mismatch.</p>
+<p><strong>Pure functions</strong> always return the same value given the same arguments, and have no side-effects. In essence, the function must not depend on anything else besides the arguments, and it must not mutate anything.</p>
+<p><strong>Functional programming</strong> refers to the paradigm where the program is mainly expressed as pure functions.</p>
+<p><strong>Reactive programming</strong> about having something that a component can start listening for, and react to the events as it pleases. In Elm, these listenable things are signals. The component using a signal knows how to utilize it, but the signal has no knowledge of the component(s) that it is affecting.</p>
+<h2 id="game.elm">game.elm</h2>
+<div class="sourceCode"><pre class="sourceCode haskell"><code class="sourceCode haskell"><span class="kw">import </span><span class="dt">Graphics.Element</span> exposing (..)
+<span class="kw">import </span><span class="dt">Time</span> exposing (..)
+<span class="kw">import </span><span class="dt">Keyboard</span>
+
+<span class="co">-- MODEL</span>
+<span class="kw">type</span> alias <span class="dt">Ship</span> <span class="fu">=</span>
+  { position <span class="fu">:</span> <span class="dt">Float</span>  <span class="co">-- just 1 degree of freedom (left-right)</span>
+  , velocity <span class="fu">:</span> <span class="dt">Float</span>  <span class="co">-- either 0, 1 or -1</span>
+  , shooting <span class="fu">:</span> <span class="dt">Bool</span>
+  }
+
+initShip <span class="fu">:</span> <span class="dt">Ship</span>
+initShip <span class="fu">=</span>
+  { position <span class="fu">=</span> <span class="dv">0</span>
+  , velocity <span class="fu">=</span> <span class="dv">0</span>
+  , shooting <span class="fu">=</span> <span class="dt">False</span>
+  }
+
+<span class="kw">type</span> alias <span class="dt">Keys</span> <span class="fu">=</span> { x <span class="fu">:</span> <span class="dt">Int</span>, y <span class="fu">:</span> <span class="dt">Int</span> }
+
+
+<span class="co">-- UPDATE</span>
+applyPhysics <span class="fu">:</span> <span class="dt">Float</span> <span class="ot">-&gt;</span> <span class="dt">Ship</span> <span class="ot">-&gt;</span> <span class="dt">Ship</span>
+applyPhysics dt ship <span class="fu">=</span>
+  { ship <span class="fu">|</span> position <span class="fu">=</span> ship<span class="fu">.</span>position <span class="fu">+</span> ship<span class="fu">.</span>velocity <span class="fu">*</span> dt }
+
+updateVelocity <span class="fu">:</span> <span class="dt">Float</span> <span class="ot">-&gt;</span> <span class="dt">Ship</span> <span class="ot">-&gt;</span> <span class="dt">Ship</span>
+updateVelocity newVelocity ship <span class="fu">=</span>
+  { ship <span class="fu">|</span> velocity <span class="fu">=</span> newVelocity }
+
+updateShooting <span class="fu">:</span> <span class="dt">Bool</span> <span class="ot">-&gt;</span> <span class="dt">Ship</span> <span class="ot">-&gt;</span> <span class="dt">Ship</span>
+updateShooting isShooting ship <span class="fu">=</span>
+  { ship <span class="fu">|</span> shooting <span class="fu">=</span> isShooting }
+
+update <span class="fu">:</span> (<span class="dt">Float</span>, <span class="dt">Keys</span>) <span class="ot">-&gt;</span> <span class="dt">Ship</span> <span class="ot">-&gt;</span> <span class="dt">Ship</span>
+update (dt, keys) ship <span class="fu">=</span>
+  <span class="kw">let</span> newVel      <span class="fu">=</span> toFloat keys<span class="fu">.</span>x
+      isShooting  <span class="fu">=</span> keys<span class="fu">.</span>y <span class="fu">&gt;</span> <span class="dv">0</span>
+  <span class="kw">in</span>  updateVelocity newVel (updateShooting isShooting (applyPhysics dt ship))
+
+
+<span class="co">-- SIGNALS</span>
+inputSignal <span class="fu">:</span> <span class="dt">Signal</span> (<span class="dt">Float</span>, <span class="dt">Keys</span>)
+inputSignal <span class="fu">=</span>
+  <span class="kw">let</span> delta <span class="fu">=</span> fps <span class="dv">30</span>
+      tuples <span class="fu">=</span> Signal.map2 (,) delta Keyboard.arrows
+  <span class="kw">in</span>  Signal.sampleOn delta tuples
+
+main <span class="fu">:</span> <span class="dt">Signal</span> <span class="dt">Element</span>
+main <span class="fu">=</span> Signal.map show (Signal.foldp update initShip inputSignal)</code></pre></div>
+
+    <div class="post-footer">
+      Maybe your followers would be interested in this post?
+      <a href="https://twitter.com/intent/tweet?original_referer=http%3A%2F%2Fohanhi.com%2Flearning-fp.html&amp;text=Learning%20FP%20the%20hard%20way%20-%20Experiences%20on%20the%20Elm%20language&amp;url=http%3A%2F%2Fohanhi.com%2Flearning-fp.html&amp;via=ohanhi" rel="nofollow" target="_blank">Get tweety with it!</a>
+    </div>
+
+  </section>
+  <footer>
+    <a href="https://twitter.com/ohanhi">Twitter</a>
+    &ndash;
+    <a href="https://github.com/ohanhi">GitHub</a>
+  </footer>
+
+  <script src="js/main.js"></script>
+  <script>
+  (function(b,o,i,l,e,r){b.GoogleAnalyticsObject=l;b[l]||(b[l]=
+    function(){(b[l].q=b[l].q||[]).push(arguments)});b[l].l=+new Date;
+    e=o.createElement(i);r=o.getElementsByTagName(i)[0];
+    e.src='https://www.google-analytics.com/analytics.js';
+    r.parentNode.insertBefore(e,r)}(window,document,'script','ga'));
+    ga('create','UA-58943555-1');ga('send','pageview');
+    </script>
+  </body>
+  </html>

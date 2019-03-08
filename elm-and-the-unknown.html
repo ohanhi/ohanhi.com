@@ -1,0 +1,208 @@
+<!DOCTYPE html>
+<html class="no-js">
+<head>
+  <meta charset="utf-8">
+  <meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1">
+  <title> Elm and the unknown - Ossi Hanhinen</title>
+  <meta name="description" content="Elm and the unknown">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <link rel="stylesheet" href="./css/main.css">
+</head>
+<body>
+  <section class="contain post">
+    <a href="./" class="back-link">&laquo; Home</a>
+
+    <header class="post-header">
+  
+  <h1 class="post-title">Elm and the unknown</h1>
+  
+  <h2>Using Elm for project work</h2>
+  
+</header>
+<div class="post-meta">
+  <img class="profile-pic" src="./img/profile_tiny.jpg" alt>
+  <h3 class="author">
+    <span>Ossi Hanhinen</span>
+    <a href="https://twitter.com/ohanhi">@ohanhi</a>
+  </h3>
+  <p class="post-date">May 11, 2017</p>
+</div>
+
+<hr>
+
+<h3>Read this to</h3>
+<ul class="post-reasons">
+  
+  <li>understand how the constraints in Elm affect day-to-day work</li>
+  
+  <li>know some common cases when you need to reach out to JavaScript</li>
+  
+  <li>see what kinds of options you have in practice</li>
+  
+</ul>
+
+<h3>I expect you to know</h3>
+<ul class="post-prereqs">
+  
+  <li>customer work in the field of software</li>
+  
+  <li>some functional programming principles (e.g. React is enough)</li>
+  
+</ul>
+
+<hr> <h2 id="table-of-contents">Table of contents</h2>
+<ul>
+<li><a href="#foreword">Foreword</a></li>
+<li><a href="#choose-the-right-tool-for-the-job">Choose the right tool for the job</a></li>
+<li><a href="#what-sort-of-a-risk-is-using-elm">What sort of a risk is using Elm?</a></li>
+<li><a href="#when-do-we-need-interop">When do we need interop?</a></li>
+<li><a href="#preface-getting-info-from-the-dom">Preface: Getting info from the DOM</a></li>
+<li><a href="#package-catalog">1. Package catalog</a></li>
+<li><a href="#ports">2. Ports</a></li>
+<li><a href="#installing-non-published-packages">3. Installing non-published packages</a></li>
+<li><a href="#elm-ffi">4. elm-ffi</a></li>
+<li><a href="#conclusion">Conclusion</a></li>
+</ul>
+<h2 id="foreword">Foreword</h2>
+<p>I believe anyone who has worked as a developer knows how to weigh possible solutions on a few levels. There is elegant code and there are customer demands, there are optimized algorithms and there are budget constraints. Like one of my ex-coworkers so eloquently put it:</p>
+<blockquote>
+<p>Professional programming is a balancing act between craftsmanship and getshitdonefulness.</p>
+<p><cite>— An ancient <a href="https://twitter.com/jevakallio">jevakallio</a> proverb</cite></p>
+</blockquote>
+<p>This balancing act also affects people evaluating technology choices: they need to feel safe with the choice they are making. The technology needs to have a certain level of “getshitdonefulness” so that if the day comes when a deadline is looming like a dark cloud above your head, you know you can get it done.</p>
+<p>Elm has gained a great reputation with its beautiful ideology that enforces purity and statelessness. But this is not a solely positive aspect. When it comes to “quick hacks” or wrapping existing JavaScript libraries, Elm seems to be a hindrance. In this post, I explain the tools and strategies to use when Elm’s restrictions or relatively smaller ecosystem come in the way of meeting a deadline.</p>
+<h2 id="choose-the-right-tool-for-the-job">Choose the right tool for the job</h2>
+<p>After posting this article, we had a brief discussion with a coworker. He had a good point that I had not adequately stressed in this article: some kinds of applications are better for Elm than others.</p>
+<p>The tools we use are intrinsically tied to the demands of the products and services we build. Choose the best fit, not the one you currently like best or are most familiar with. Familiarity grows over time, but poor technology choices will slowly but surely take their toll over the course of the project.</p>
+<p><a href="https://twitter.com/mironieminen">Miro</a> gave his consent to use this in the post.</p>
+<hr />
+<p><strong>Miro</strong>: extremely interesting<br> <strong>Miro</strong>: I’d like to challenge your conclusions a little bit - because I doubt everything and I’m not really yet sold with Elm. for eg the maps example, it seems that it can be done, but would you do an app which needs heavy maps integration with Elm?<br> <strong>Miro</strong>: and what about the changes to the language, there was mention about 2-day refactor required by it - what is your gut feeling, are there more radical changes like that still to be expected?<br> <strong>Miro</strong>: actually that previous thread about this is a good one [link within our internal chat]<br></p>
+<p><strong>ohanhi</strong>: <span class="citation">@Miro</span>, If the application is a map app, I wouldn’t do it in Elm.<br> <strong>ohanhi</strong>: There are cases where Elm is a great choice, there are cases where React is a great choice and there are cases where Handlebars and vanilla JS is a great choice<br> <strong>ohanhi</strong>: I am definitely not saying that Elm is the <em>End-all And Only Best Solution For Frontend Get It Now for 49.99!</em><br> <strong>ohanhi</strong>: As with all things, you as a consultant need to consider the fitness of the technology to your overall understanding of what the application is supposed to be.<br></p>
+<p><strong>Miro</strong>: yeah I know - and thank you for the tip; that &amp; the article itself was really good</p>
+<p><strong>ohanhi</strong>: Cool, thanks. I’ll add it.</p>
+<hr />
+<p>I hope this clears things up for the rest of you, too!</p>
+<h2 id="what-sort-of-a-risk-is-using-elm">What sort of a risk is using Elm?</h2>
+<p>Elm is a young language as far as programming languages go. First version was released in 2012, and it is a <abbr title="Benevolent Dictator For Life">BDFL</abbr> sort of a language like Python. This means there is a single person who guides the language design and prepares new releases. For Elm, this is <a href="https://twitter.com/czaplic">Evan Czaplicki</a> (for Python, it’s <a href="https://twitter.com/gvanrossum">Guido van Rossum</a>). There is a strong but fairly small community around the core development of Elm.</p>
+<p>Elm is ready to be used for production. Many companies, such as <a href="https://www.pivotaltracker.com/blog/Elm-pivotal-tracker/">Pivotal Tracker</a> and <a href="https://twitter.com/AbletonDev/status/861580662620508160">Ableton</a>, are already using it for real customer-facing things. I have used Elm in two big customer projects myself and another customer project by Futurice was just open sourced (<a href="https://github.com/Tradenomiliitto/tradenomiitti">source on GitHub</a>).</p>
+<p>Personally I’ve never felt blocked by Elm. As I mentioned, I have used Elm in two customer projects, one of which was heavily based on drag and drop and the other one had things like image uploading. For both of these, I used ports and had no trouble at all (except for dealing with the HTML5 Drag and Drop API).</p>
+<p>The language is still in flux, and some <a href="http://elm-lang.org/blog/farewell-to-frp">big changes</a> have shook up the user community. Removing Signals was definitely the biggest and boldest move I’ve seen in language design, and it happened right in the middle of one of our customer projects. Keeping a cool head, we waited for a few weeks for the dependencies to be updated, and then I took the plunge.</p>
+<p>It took me two working days to get the entire codebase to compile again. Once it did, all but one of our end-to-end tests passed. I had figured that while I was already working on the entire codebase, I could also make some refactoring to how our user authentication worked. The test failed because I had forgotten to wire up something related to logging out. Once that was done, it all worked again.</p>
+<p>Had this sort of a change happened in a JavaScript codebase, we would most likely have not had the time to upgrade at all. The confidence I have for the compiler is 100% the reason why I took on this endeavor. I knew if I just keep going through the compile errors, I will emerge on the other side with a codebase that is <em>sound</em>. There can’t be any undefined variables, missed cases or calls to functions with the wrong number of arguments anywhere.</p>
+<p>The restrictions in Elm are what make the language incredibly useful for lean projects: no matter how fast you move, you will always have code that is working and sound.</p>
+<p>There are times when Elm alone is not enough, so let’s move on to the interop story.</p>
+<h2 id="when-do-we-need-interop">When do we need interop?</h2>
+<p>There are three major cases where you may be forced to get outside the safety of Elm:</p>
+<ol style="list-style-type: decimal">
+<li>Direct access to the DOM</li>
+<li>Web platform stuff not yet implemented in Elm</li>
+<li>Large and/or closed-source third party JavaScript like maps, live customer service chats etc.</li>
+</ol>
+<p>For anything else, you can stay within Elm, albeit it might take a little more time to code the feature.</p>
+<h3 id="direct-access-to-the-dom">Direct access to the DOM</h3>
+<p>In short, Elm doesn’t have any manner of getting a reference to a DOM node. This may be a problem in some cases, particularly when you need to call a method on the element like <code>myDiv.getBoundingBox()</code>. These are usually quite easily handled with ports, but you do need to use e.g. an <code>id</code> attribute to target the correct element.</p>
+<h3 id="web-platform-stuff">Web platform stuff</h3>
+<p>Certain features like the File API and the Web Audio API are not implemented in Elm yet. Again, ports can probably do what you need rather easily.</p>
+<h3 id="large-third-party-js">Large third party JS</h3>
+<p>This is a bit trickier. Depending on how invasive and how uncommon the thing is, you may need to figure out how best to integrate it on your own. Maybe it should be a Web Component within your Elm application. Maybe it is best handled outside of the Elm app as a totally separate part of the DOM. Maybe you have to come up with a client-server API to communicate between Elm and the JavaScript library.</p>
+<p>In all of the above cases, the Elm Slack (<a href="http://elmlang.herokuapp.com/">join here</a>) is a great place to ask for help and ideas!</p>
+<p>Now that you have an idea of when some sort of interop is often needed, let’s go through the different strategies in the order I would personally use them. The priorities may be a little bit opinionated, so feel free to make your own judgment.</p>
+<h2 id="preface-getting-info-from-the-dom">Preface: Getting info from the DOM</h2>
+<p>If all you need is to get some information from the DOM, there may be a way to do that in pure Elm. Soren Debois has written <a href="https://medium.com/@debois/elm-the-dom-8c9883190d20">a whole article</a> on the subject, but it really boils down to this: you can decode any data from a DOM event by attaching a custom listener with <code>Html.Events.on</code>. I use this technique in my <a href="http://package.elm-lang.org/packages/ohanhi/autoexpand/latest">autoexpanding textarea</a> (<a href="https://www.github.com/ohanhi/autoexpand/">source code</a>).</p>
+<h2 id="package-catalog">1. Package catalog</h2>
+<p>This should always be your first step:<br> <strong>Check if a package solving your problem already exists on <a href="http://package.elm-lang.org/">package.elm-lang.org</a>!</strong></p>
+<p>The Elm ecosystem is growing by the day, so things that didn’t exist last month or even last week might exist now.</p>
+<p>Here are some examples of things that do exist:</p>
+<ul>
+<li>“routing”: <a href="http://package.elm-lang.org/packages/elm-lang/navigation/latest">navigation</a> and <a href="http://package.elm-lang.org/packages/evancz/url-parser/latest">url-parser</a></li>
+<li>DOM support for focus and scroll</li>
+<li>great date and time handling libraries</li>
+<li>date pickers</li>
+<li>autocomplete input</li>
+<li>keyboard combination helpers</li>
+</ul>
+<h2 id="ports">2. Ports</h2>
+<p>Ports are Elm’s built-in way to send messages to, and receive messages from, JavaScript. They can be used for every sort of need, though I have to admit the ergonomics are best suited for things that can be classified as <em>message passing</em>. This is how they look like:</p>
+<div class="sourceCode"><pre class="sourceCode haskell"><code class="sourceCode haskell"><span class="co">-- Elm to JS</span>
+port requestUuid <span class="fu">:</span> () <span class="ot">-&gt;</span> <span class="dt">Cmd</span> msg
+
+<span class="co">-- JS to Elm</span>
+port receiveUuid <span class="fu">:</span> (<span class="dt">String</span> <span class="ot">-&gt;</span> msg) <span class="ot">-&gt;</span> <span class="dt">Sub</span> msg</code></pre></div>
+<p>You tie the <code>receiveUuid</code> port to a specific message:</p>
+<div class="sourceCode"><pre class="sourceCode haskell"><code class="sourceCode haskell"><span class="co">-- add subscription to the port</span>
+subscriptions <span class="fu">=</span>
+    receiveUuid <span class="dt">UuidReceived</span>
+
+<span class="co">-- when a value comes in, you handle it just like any other message</span>
+update msg model <span class="fu">=</span>
+    <span class="kw">case</span> msg <span class="kw">of</span>
+        <span class="dt">UuidReceived</span> uuid <span class="ot">-&gt;</span>
+            useTheNewUuid uuid
+        <span class="co">-- ...</span></code></pre></div>
+<p>On the JavaScript side, you simply <code>subscribe</code> to Elm to JS ports, and can <code>send</code> data through JS to Elm ports.</p>
+<div class="sourceCode"><pre class="sourceCode javascript"><code class="sourceCode javascript"><span class="va">myElmApp</span>.<span class="va">ports</span>.<span class="va">requestUuid</span>.<span class="at">subscribe</span>(<span class="kw">function</span>() <span class="op">{</span>
+  <span class="kw">var</span> newUuid <span class="op">=</span> <span class="va">uuid</span>.<span class="at">v4</span>()<span class="op">;</span>
+  <span class="va">myElmApp</span>.<span class="va">ports</span>.<span class="va">receiveUuid</span>.<span class="at">send</span>(newUuid)<span class="op">;</span>
+<span class="op">}</span>)<span class="op">;</span></code></pre></div>
+<p><strong>Note</strong>: Ports might strike you as an unnecessarily elaborate way of dealing with something “as simple as” calling external functions. However, once I understood how this approach made all communication to the outside completely safe and decoupled from the uncertainty of JavaScript, I came to really appreciate the idea. <a href="https://elmtown.github.io/2017/05/09/history-in-elm-town-ports-episode-13.html">Episode 13</a> of the Elm Town podcast is entirely about the thought processes and design considerations behind ports, so I highly recommend listening to it in case you are interested.</p>
+<h2 id="installing-non-published-packages">3. Installing non-published packages</h2>
+<p>By default, packages containing ports or “native” JavaScript code are not accepted on the package catalog. Some packages have gone through an acceptance process and gotten whitelisted, but one can’t simply wrap e.g. Moment.js or Google Maps and publish that to package.elm-lang.org.</p>
+<p>Obviously people do that sort of stuff anyway, and there is a way to install those too: <a href="https://github.com/gdotdesign/elm-github-install">elm-install</a>. With this tool, you can add any GitHub repository as a dependency to your <code>elm-package.json</code> file and install the dependencies just as easily as you normally would.</p>
+<p>Just remember you might be introducing runtime exceptions in your applications this way.</p>
+<div class="sourceCode"><pre class="sourceCode bash"><code class="sourceCode bash"><span class="co"># when you only have published packages in your elm-package.json</span>
+$ <span class="ex">elm-package</span> install
+
+<span class="co"># when you have non-published packages in your elm-package.json</span>
+$ <span class="ex">elm-install</span></code></pre></div>
+<p><strong>Note</strong>: As well as packages containing JavaScript, you can use elm-install for installing “private packages” from any Git repository or even your own hard drive. See the <a href="https://github.com/gdotdesign/elm-github-install#advanced-usage">advanced usage</a> section on the readme for more info.</p>
+<h2 id="elm-ffi">4. elm-ffi</h2>
+<p>If you have a lot of experience with Elm already, and find that something is too much of a hassle to do with ports, there is an alternative: <a href="https://github.com/eeue56/elm-ffi">elm-ffi</a>. You can install it with the elm-install tool.</p>
+<p>With elm-ffi you can create functions - both synchronous and asynchronous - that call native JavaScript functions directly.</p>
+<div class="sourceCode"><pre class="sourceCode haskell"><code class="sourceCode haskell"><span class="kw">import </span><span class="dt">FFI</span>
+
+log <span class="fu">:</span> a <span class="ot">-&gt;</span> ()
+log thing <span class="fu">=</span>
+    FFI.sync <span class="st">&quot;console.log(_0);&quot;</span> [ FFI.asIs thing ]
+        <span class="fu">|&gt;</span> (\_ <span class="ot">-&gt;</span> ())</code></pre></div>
+<h3 id="installation">Installation</h3>
+<p>Put the necessary lines in your elm-package.json</p>
+<div class="sourceCode"><pre class="sourceCode javascript"><code class="sourceCode javascript"><span class="op">{</span>
+  <span class="co">// ...</span>
+  <span class="st">&quot;native-modules&quot;</span><span class="op">:</span> <span class="kw">true</span><span class="op">,</span>
+  <span class="st">&quot;dependencies&quot;</span><span class="op">:</span> <span class="op">{</span>
+    <span class="st">&quot;eeue56/elm-ffi&quot;</span><span class="op">:</span> <span class="st">&quot;1.3.0 &lt;= v &lt; 2.0.0&quot;</span>
+  <span class="op">},</span>
+  <span class="st">&quot;dependency-sources&quot;</span><span class="op">:</span> <span class="op">{</span>
+    <span class="st">&quot;eeue56/elm-ffi&quot;</span><span class="op">:</span> <span class="st">&quot;git@github.com:eeue56/elm-ffi&quot;</span>
+  <span class="op">},</span>
+  <span class="co">// ...</span>
+<span class="op">}</span></code></pre></div>
+<p>Then use the tool on the command line:</p>
+<div class="sourceCode"><pre class="sourceCode bash"><code class="sourceCode bash">$ <span class="ex">elm-install</span></code></pre></div>
+<p>I shouldn’t even have to point out that using elm-ffi is a very easy way to make your Elm application unsafe. Only use it if you really deem it necessary.</p>
+<h2 id="conclusion">Conclusion</h2>
+<p>There are real use cases to reach out to the JavaScript land in almost any larger Elm application. Most of the time ports are nice enough to write and use. There are more than one way to handle interop, however. I hope this article fleshed out the situation nicely and helps you weigh out the options.</p>
+
+    <div class="post-footer">
+      Maybe your followers would be interested in this post?
+      <a href="https://twitter.com/intent/tweet?original_referer=http%3A%2F%2Fohanhi.com%2Felm-and-the-unknown.html&amp;text=Elm%20and%20the%20unknown%20-%20Using%20Elm%20for%20project%20work&amp;url=http%3A%2F%2Fohanhi.com%2Felm-and-the-unknown.html&amp;via=ohanhi" rel="nofollow" target="_blank">Get tweety with it!</a>
+    </div>
+
+  </section>
+  <footer>
+    <a href="https://twitter.com/ohanhi">Twitter</a>
+    &ndash;
+    <a href="https://github.com/ohanhi">GitHub</a>
+  </footer>
+
+  <script src="js/main.js"></script>
+  <script>
+  (function(b,o,i,l,e,r){b.GoogleAnalyticsObject=l;b[l]||(b[l]=
+    function(){(b[l].q=b[l].q||[]).push(arguments)});b[l].l=+new Date;
+    e=o.createElement(i);r=o.getElementsByTagName(i)[0];
+    e.src='https://www.google-analytics.com/analytics.js';
+    r.parentNode.insertBefore(e,r)}(window,document,'script','ga'));
+    ga('create','UA-58943555-1');ga('send','pageview');
+    </script>
+  </body>
+  </html>

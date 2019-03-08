@@ -1,0 +1,2337 @@
+<?xml version="1.0" encoding="utf-8"?>
+<feed xmlns="http://www.w3.org/2005/Atom">
+    <title>ohanhi.com</title>
+    <link href="http://ohanhi.com/atom.xml" rel="self" />
+    <link href="http://ohanhi.com" />
+    <id>http://ohanhi.com/atom.xml</id>
+    <author>
+        <name>Ossi Hanhinen</name>
+        <email>ossi.hanhinen@gmail.com</email>
+    </author>
+    <updated>2019-03-01T00:00:00Z</updated>
+    <entry>
+    <title>If you're using React, Redux and TypeScript, you would be so happy with Elm!</title>
+    <link href="http://ohanhi.com/react-typescript-vs-elm.html" />
+    <id>http://ohanhi.com/react-typescript-vs-elm.html</id>
+    <published>2019-03-01T00:00:00Z</published>
+    <updated>2019-03-01T00:00:00Z</updated>
+    <summary type="html"><![CDATA[<header class="post-header">
+  
+  <h1 class="post-title">If you're using React, Redux and TypeScript, you would be so happy with Elm!</h1>
+  
+</header>
+<div class="post-meta">
+  <img class="profile-pic" src="/img/profile_tiny.jpg" alt="">
+  <h3 class="author">
+    <span>Ossi Hanhinen</span>
+    <a href="https://twitter.com/ohanhi">@ohanhi</a>
+  </h3>
+  <p class="post-date">March 1, 2019</p>
+</div>
+
+<hr>
+
+<h3>Read this to</h3>
+<ul class="post-reasons">
+  
+  <li>see how React, Redux and TypeScript is already quite close to using Elm</li>
+  
+  <li>get to know some things where Elm could help you more than TypeScript</li>
+  
+</ul>
+
+<h3>I expect you to know</h3>
+<ul class="post-prereqs">
+  
+  <li>how it is to work with React and Redux, and some TypeScript</li>
+  
+</ul>
+
+<hr> <h2 id="introduction">Introduction</h2>
+<p>I have used Elm in two client projects spanning about three years total. In my latest project we used React, Redux and TypeScript instead, and that was pretty nice too. This post is meant to be a conversation starter, a thought piece, on “what if we tried Elm for real?” If you’re thinking no one is using Elm, let me point out that companies like <a href="https://github.com/Microsoft/elm-json-tree-view">Microsoft</a>, <a href="https://discourse.elm-lang.org/t/ibm-releases-elm-powered-app/2364">IBM</a> and <a href="https://learningmusic.ableton.com">Ableton</a> have successfully used Elm in production.</p>
+<p>If you’ve used TypeScript in a project already, good for you! You can probably agree that the static types it provides can be a real help when adding new features. And where it really shines is refactoring. Changing function arguments or removing fields from a configuration object in a JavaScript project can be a very risky thing, but the TypeScript compiler can spot many places where things are going wrong. You can be much more confident that the code will work. Now imagine that was the case for every single change in the code base? And you could be 100% certain there are no places left using the old structure once you’re done? That’s what Elm can give you! Furthermore, the compiler will help you go through all the steps needed while adding a feature, but let’s come back to that a bit later.</p>
+<p>Before we begin, I want to emphasize that I am not saying Elm is the best solution in all cases. There are very valid reasons to use React, Redux and TypeScript instead! There are valid reasons even for not using a framework at all. This post just focuses on the lovely things I know from Elm, compared to how the same thing worked in the React project. Do what you love and what feels like the best solution for the problem at hand. 💝</p>
+<h2 id="overview-of-similarities">Overview of similarities</h2>
+<p>Let’s start with comparing the vocabulary. How do React, Redux and TypeScript features relate to Elm in the overall context of building a single page app? You might have heard that Redux is <a href="https://github.com/reduxjs/redux#influences">inspired by</a> the Elm architecture. This is very helpful, since it means we can draw some rather direct analogies between it and Elm. In React, components without any local state correspond to the way Elm views work. I won’t talk about too many TypeScript features since they are not the point of this post.</p>
+<p>This table is a simplification for sure, but hopefully a helpful one.</p>
+<table>
+<thead>
+<tr class="header">
+<th>Concern</th>
+<th>React+Redux+TS</th>
+<th>Elm</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td>views</td>
+<td>stateless React components</td>
+<td><code>view</code></td>
+</tr>
+<tr class="even">
+<td>data modeling</td>
+<td>TypeScript types</td>
+<td>types</td>
+</tr>
+<tr class="odd">
+<td>app state</td>
+<td>Redux store</td>
+<td><code>model</code></td>
+</tr>
+<tr class="even">
+<td>input/events</td>
+<td>Redux actions</td>
+<td><code>Msg</code> (message)</td>
+</tr>
+<tr class="odd">
+<td>updating state</td>
+<td>Redux reducer</td>
+<td><code>update</code></td>
+</tr>
+<tr class="even">
+<td>effects (e.g. HTTP request)</td>
+<td><code>redux-loop</code>, <code>redux-saga</code>, …</td>
+<td><code>Cmd</code> (command)</td>
+</tr>
+</tbody>
+</table>
+<p>All in all, the two “frameworks” provide comparable functionality and one can follow very similar coding patterns in both. The main differences are that in Elm you can only have one <code>model</code> and in Redux you could have several stores, and that there are no stateful views in Elm. Everything that changes the UI simply has to be in the <code>model</code>. These might sound like big restrictions, but in my experience they really cut down on the bikeshedding we all end up doing in bigger projects. You never have to argue whether a slice of state should have its own store or not, or if the input value should go in the Redux store or local state.</p>
+<p>With that, let’s move on to covering some points that we knew were especially nice about Elm and we had some trouble with in our React, Redux and TypeScript project!</p>
+<h2 id="everything-is-safe">Everything is safe</h2>
+<p>“I call it my billion-dollar mistake” said <a href="https://en.wikipedia.org/wiki/Tony_Hoare">Sir Tony Hoare</a> at a conference in 2009. He was speaking about the null reference, something he came up with in 1965. “My goal was to ensure that all use of references should be absolutely safe, with checking performed automatically by the compiler.”</p>
+<p>TypeScript is a superset of JavaScript, so it can never remedy the billion dollar mistake. Elm has done it. The way you deal with potentially non-existing values (like the first element in a list) is that you always have a fallback of some sort. This is incredibly reassuring. Even in a large codebase I have never seen before, I can be certain that changes I make will not cause runtime exceptions somewhere else. Also, no matter what kind of deadlines we’ve been under, there won’t be unexplored paths that lead to crashes. We have much more time to focus on the logic bugs instead!</p>
+<p>If this idea seems unfamiliar, here’s a concrete example of how this works in Elm. Converting a string to a floating point number is a simple case where things might not work out:</p>
+<div class="sourceCode"><pre class="sourceCode haskell"><code class="sourceCode haskell">showNumber maybeNumber <span class="fu">=</span>
+    <span class="kw">case</span> maybeNumber <span class="kw">of</span>
+        <span class="dt">Just</span> number <span class="ot">-&gt;</span>
+            <span class="co">-- Great, we have the number so we can format it nicely!</span>
+            formatNumberNicely number
+
+        <span class="dt">Nothing</span> <span class="ot">-&gt;</span>
+            <span class="co">-- This is the fallback in case the number isn&#39;t there.</span>
+            <span class="co">-- The code wouldn&#39;t compile without this branch.</span>
+            <span class="st">&quot;The conversion didn&#39;t work out&quot;</span>
+
+
+showNumber (<span class="dt">String</span><span class="fu">.</span>toFloat <span class="st">&quot;3.14159265&quot;</span>) <span class="fu">--&gt;</span> <span class="st">&quot;3.14&quot;</span>
+
+showNumber (<span class="dt">String</span><span class="fu">.</span>toFloat <span class="st">&quot;3 stars&quot;</span>) <span class="fu">--&gt;</span> <span class="st">&quot;The conversion didn&#39;t work out&quot;</span></code></pre></div>
+<p>So in any case, we will get a string out of the <code>showNumber</code> function. In practice the best place to handle missing information is usually on the Html view itself. Content is loading? Show a loading view. Request failed? Show a failure view.</p>
+<h2 id="reliable-types-for-all-packages">Reliable types for all packages</h2>
+<p>To me, the single most appealing feature of a statically typed language is that as a developer I can rely 100% on things like function names and argument types to be correct when the compiler says “Success”. If you’ve used TypeScript for a while, you have most likely come across packages that either don’t provide any TypeScript type information, and you need community-provided typings that are out of sync with the package itself, or worse, the package includes typings that are downright incorrect. I have sadly had this experience several times in the past year.</p>
+<p>In Elm, the package manager knows the types. They are an intrinsic feature of all Elm packages and not something you can omit or get wrong – all types in the code must match the documentation for the package to be publishable. Speaking of, all Elm packages have to have documentation for every single function they expose, and semantic versioning is enforced by the compiler too. What’s super nice for the user is that all packages have their documentation in the same place (<a href="https://package.elm-lang.org/">package.elm-lang.org</a>) formatted the same way.</p>
+<p>The package ecosystem in Elm is very different from npm. There are far fewer packages, and I feel on average they are incredibly well designed and documented. In general, you don’t need many dependencies at all for building a big project – the language core provides lodash-like utilities and such by default. Things like <a href="https://package.elm-lang.org/packages/NoRedInk/elm-sortable-table/latest/">sortable tables</a>, <a href="https://package.elm-lang.org/packages/abradley2/elm-datepicker/latest/">date pickers</a>, <a href="https://package.elm-lang.org/packages/terezka/line-charts/latest/">charts</a> and <a href="https://package.elm-lang.org/packages/gampleman/elm-visualization/latest/">visualizations</a> have one or two packages that almost everyone needing them uses. On the other hand, there are things that do not exist in Elm like Google Maps (though there are other map packages). For these, you can either <a href="https://dev.to/lukewestby/talk-when-and-how-to-use-web-components-with-elm-f85">wrap them in Web Components</a> or use ports, which allow you to freely but safely communicate with the JS land.</p>
+<h2 id="compiler-helps-you-finish-new-features">Compiler helps you finish new features</h2>
+<p>There are a good amount of places in the code base to go through when adding a new feature in Redux. You need to create the UI, event handler, action creator, action, and reducer branch. It’s a lot to remember! TypeScript does not help me remember what parts of the code I was supposed to touch – which makes total sense as you can use it for so many other things besides Redux apps.</p>
+<p>In Elm, you can start with creating the UI part using a message name that doesn’t exist yet, and the compiler will then guide you through all of the rest. I know this sounds silly, so let me demonstrate. Starting with the classic counter example you get when you head to <a href="https://ellie-app.com/new">ellie-app.com/new</a>, let’s add a reset feature!</p>
+<ol style="list-style-type: decimal">
+<li>Add a button to the UI (as line 38): <code>, button [ onClick Reset ] [ text &quot;reset&quot; ]</code>. <br>➤ Compile. The message will say “I cannot find a `Reset` constructor”</li>
+<li>Realize you need the new message, add <code>| Reset</code> to the Msg type (as line 20). <br>➤ Compile. The message will say “This `case` does not have branches for all possibilities” and mention the missing Reset branch.</li>
+<li>Recall you need to add the branch to the <code>update</code> (eg. as line 32): <code>Reset -&gt; initialModel</code>. <br>➤ Compile. The program will compile and have a new feature: <em>a fully working reset button</em> 🎉!</li>
+</ol>
+<h2 id="all-of-the-code-has-good-typings">All of the code has good typings</h2>
+<p>A lovely feature in modern statically typed languages, like TypeScript, is type inference. This means the compiler can figure out the types in your code on its own. Unfortunately the compiler can get confused sometimes, like in the case of filtering specific types of things from an array.</p>
+<div class="sourceCode"><pre class="sourceCode javascript"><code class="sourceCode javascript">type MaybeMessage <span class="op">=</span>
+    <span class="op">|</span> <span class="op">{</span> <span class="dt">type</span><span class="op">:</span> <span class="st">&#39;has-message&#39;</span><span class="op">,</span> <span class="dt">message</span><span class="op">:</span> string <span class="op">}</span>
+    <span class="op">|</span> <span class="op">{</span> <span class="dt">type</span><span class="op">:</span> <span class="st">&#39;no-message&#39;</span> <span class="op">}</span>
+
+<span class="kw">const</span> myArray<span class="op">:</span> MaybeMessage[] <span class="op">=</span> [<span class="co">/*...*/</span>]
+
+myArray
+    .<span class="at">filter</span>(item <span class="op">=&gt;</span> <span class="va">item</span>.<span class="at">type</span> <span class="op">===</span> <span class="st">&#39;has-message&#39;</span>)
+    .<span class="at">map</span>(item <span class="op">=&gt;</span> <span class="va">item</span>.<span class="at">message</span>) 
+
+<span class="co">// ERROR: Property &#39;message&#39; does not exist on type &#39;{ type: &quot;no-message&quot;; }&#39;</span></code></pre></div>
+<p>The error can be resolved in a number of ways, such as casting to <code>any</code> or creating a type guard function, but it’s always a bit of an awkward feeling when you need to tell the compiler what is really going on.</p>
+<p>This might sound weird but in my experience the type inference in Elm is flawless. I’ve written tens of thousands of lines of Elm and not once have I seen a case where the compiler didn’t know what the types really are. I have disagreed on many occasions of course, but the compiler has always had it right and not me. It does not matter if you’ve written type annotations or not, the type inference will work just as well without any hints. As a matter of fact, the compiler only uses your type annotations to check that your expectations and the actual types match up.</p>
+<h2 id="validating-data-is-not-optional">Validating data is not optional</h2>
+<p>One of the things I’ve come to love the most in Elm was something I was most confused about when I was first learning the language: JSON has to be decoded before the data can be used in your app. This might sound cumbersome and I have to admit it is a little.</p>
+<p>However, the positives start to outweigh the negatives as soon as you find a discrepancy between what you expected the data to be and what it really is. If you are validating the data (and handling potential errors) right at the border of your app, there won’t be any unexpected crashes even if the backend responds something totally strange. This means you immediately know what part of the codebase you need to be touching.</p>
+<p>You can do this in TypeScript too with e.g. <a href="https://github.com/gcanti/io-ts">io-ts</a>. It’s worth trying out, I promise!</p>
+<h2 id="conclusion">Conclusion</h2>
+<p>If you read this far I want to thank you for your time! There are many many things to love about working with React, Redux and TypeScript. If you feel like you’re happy with these technologies, feel free to keep using them! Also remember that there are places where the React-Redux world is ahead of Elm: notably there is no official way to do server side rendering or code-splitting in Elm as of yet. These are planned, but if you do need those now it’s probably a good idea to hold off for a while still!</p>
+<p>If you did get interested in trying out Elm, I suggest starting with the official <a href="https://guide.elm-lang.org/">guide</a> and then joining the super friedly and welcoming <a href="http://elmlang.herokuapp.com/">Slack</a>. Don’t be afraid to ask any beginner questions either, the community loves to help people!</p>
+<h2 id="appendix-code-example-comparison">Appendix: Code example comparison</h2>
+<p>This section is here just to show how the TypeScript and Elm languages represent the same ideas. TypeScript is definitely a more general purpose language than Elm, which is mixed blessing. On the one hand, you can write whatever code you could in JavaScript (from React, Angular, and Vue.js to CLI scripts). On the other hand, there are no hints or built-in patterns to guide you how to write your React+Redux application. Elm is a language that only has the React+Redux -like application pattern (the Elm Architecture), which means there is considerably less “boilerplate” to tie things together at the type level. This is particularly true for the event handlers – see the Full module example.</p>
+<h3 id="set-up-a-type-and-initial-value-for-the-app-state">1. Set up a type and initial value for the app state</h3>
+<p>TypeScript</p>
+<div class="sourceCode"><pre class="sourceCode javascript"><code class="sourceCode javascript"><span class="kw">interface</span> State <span class="op">{</span>
+  <span class="dt">yourName</span><span class="op">:</span> string<span class="op">;</span>
+<span class="op">}</span>
+
+<span class="kw">const</span> defaultState<span class="op">:</span> State <span class="op">=</span> <span class="op">{</span>
+  <span class="dt">yourName</span><span class="op">:</span> <span class="st">&#39;&#39;</span><span class="op">,</span>
+<span class="op">}</span></code></pre></div>
+<p>Elm</p>
+<div class="sourceCode"><pre class="sourceCode haskell"><code class="sourceCode haskell"><span class="kw">type</span> alias <span class="dt">Model</span> <span class="fu">=</span>
+    { yourName <span class="fu">:</span> <span class="dt">String</span>
+    }
+
+model <span class="fu">:</span> <span class="dt">Model</span>
+model <span class="fu">=</span>
+    { yourName <span class="fu">=</span> <span class="st">&quot;&quot;</span>
+    }</code></pre></div>
+<h3 id="create-a-union-type-to-represent-all-inputs-and-events-in-the-app">2. Create a union type to represent all inputs and events in the app</h3>
+<p>TypeScript</p>
+<div class="sourceCode"><pre class="sourceCode javascript"><code class="sourceCode javascript">type Action <span class="op">=</span> <span class="op">{</span> <span class="dt">type</span><span class="op">:</span> <span class="st">&#39;NameChanged&#39;</span><span class="op">,</span> <span class="dt">payload</span><span class="op">:</span> <span class="op">{</span> <span class="dt">text</span><span class="op">:</span> string <span class="op">}</span> <span class="op">}</span>
+
+<span class="co">// But we also want an action creator</span>
+<span class="kw">function</span> <span class="at">nameChanged</span>(text<span class="op">:</span> string)<span class="op">:</span> Action <span class="op">{</span>
+  <span class="cf">return</span> <span class="op">{</span> <span class="dt">type</span><span class="op">:</span> <span class="st">&#39;NameChanged&#39;</span><span class="op">,</span> <span class="dt">payload</span><span class="op">:</span> <span class="op">{</span> text <span class="op">}</span> <span class="op">}</span>
+<span class="op">}</span></code></pre></div>
+<p>Elm</p>
+<div class="sourceCode"><pre class="sourceCode haskell"><code class="sourceCode haskell"><span class="kw">type</span> <span class="dt">Msg</span>
+    <span class="fu">=</span> <span class="dt">NameChanged</span> <span class="dt">String</span></code></pre></div>
+<p>There’s no need for an action creator in Elm, <code>NameChanged</code> is now a function that takes a string and returns a message.</p>
+<h3 id="create-a-view-that-uses-the-state-and-can-dispatch-an-action">3. Create a view that uses the state and can dispatch an action</h3>
+<p>TypeScript</p>
+<div class="sourceCode"><pre class="sourceCode javascript"><code class="sourceCode javascript"><span class="kw">const</span> MyComponent <span class="op">=</span> (props<span class="op">:</span> Props) <span class="op">=&gt;</span> (
+  <span class="op">&lt;</span>div<span class="op">&gt;</span>
+    <span class="op">&lt;</span>input
+      onInput<span class="op">={</span>(<span class="dt">event</span><span class="op">:</span> any) <span class="op">=&gt;</span> <span class="va">props</span>.<span class="at">onNameChanged</span>(<span class="va">event</span>.<span class="va">target</span>.<span class="at">value</span>)<span class="op">}</span>
+      value<span class="op">={</span><span class="va">props</span>.<span class="at">yourName</span><span class="op">}</span>
+    <span class="ss">/&gt;</span>
+<span class="ss">    &lt;h1&gt;Hello, {props.yourName}!&lt;/h1</span><span class="op">&gt;</span>
+  <span class="op">&lt;</span><span class="ss">/div&gt;</span>
+<span class="sc">)</span></code></pre></div>
+<p>With React, people usually use JSX, which has it’s own semantics and syntactic peculiarities.</p>
+<p>Elm</p>
+<div class="sourceCode"><pre class="sourceCode haskell"><code class="sourceCode haskell">view <span class="fu">:</span> <span class="dt">Model</span> <span class="ot">-&gt;</span> <span class="dt">Html</span> <span class="dt">Msg</span>
+view model <span class="fu">=</span>
+    div []
+        [ input [ onInput <span class="dt">NameChanged</span>, value model<span class="fu">.</span>yourName ] []
+        , h1 [] [ text model<span class="fu">.</span>yourName ]
+        ]</code></pre></div>
+<p>In Elm, people use <code>elm/html</code>. It is just a collection of functions like <code>div</code> that work the exact same way as all other functions, both syntactically and semantically.</p>
+<h3 id="full-example-of-a-simple-ui-module">4. Full example of a simple UI module</h3>
+<p>TypeScript (adapted from <a href="https://medium.com/knerd/typescript-tips-series-proper-typing-of-react-redux-connected-components-eda058b6727d">this post</a>)</p>
+<div class="sourceCode"><pre class="sourceCode javascript"><code class="sourceCode javascript"><span class="im">import</span> <span class="op">*</span> <span class="im">as</span> React <span class="im">from</span> <span class="st">&#39;react&#39;</span>
+<span class="im">import</span> <span class="op">*</span> <span class="im">as</span> Redux <span class="im">from</span> <span class="st">&#39;redux&#39;</span>
+<span class="co">// import Action and State from someplace</span>
+<span class="im">import</span> <span class="op">*</span> <span class="im">as</span> Actions <span class="im">from</span> <span class="st">&#39;./actions.ts&#39;</span>
+<span class="im">import</span> <span class="op">{</span> State <span class="op">}</span> <span class="im">from</span> <span class="st">&#39;./reducer.ts&#39;</span>
+
+<span class="kw">interface</span> DispatchProps <span class="op">{</span>
+  <span class="dt">onNameChanged</span><span class="op">:</span> (<span class="dt">text</span><span class="op">:</span> string) <span class="op">=&gt;</span> <span class="kw">void</span>
+<span class="op">}</span>
+
+type Props <span class="op">=</span> State <span class="op">&amp;</span> DispatchProps
+
+<span class="kw">const</span> MyComponent <span class="op">=</span> (props<span class="op">:</span> Props) <span class="op">=&gt;</span> (
+  <span class="op">&lt;</span>div<span class="op">&gt;</span>
+    <span class="op">&lt;</span>input
+      onInput<span class="op">={</span>(<span class="dt">event</span><span class="op">:</span> any) <span class="op">=&gt;</span> <span class="va">props</span>.<span class="at">onNameChanged</span>(<span class="va">event</span>.<span class="va">target</span>.<span class="at">value</span>)<span class="op">}</span>
+      value<span class="op">={</span><span class="va">props</span>.<span class="at">yourName</span><span class="op">}</span>
+    <span class="ss">/&gt;</span>
+<span class="ss">    &lt;h1&gt;Hello, {props.yourName}!&lt;/h1</span><span class="op">&gt;</span>
+  <span class="op">&lt;</span><span class="ss">/div&gt;</span>
+<span class="sc">)</span>
+
+<span class="ss">const mapStateToProps = </span><span class="sc">(</span><span class="ss">state: State</span><span class="sc">)</span><span class="ss">: State =&gt; state</span>
+
+<span class="ss">const mapDispatchToProps = </span><span class="sc">(</span><span class="ss">dispatch: Redux.Dispatch&lt;Actions.Action&gt;</span><span class="sc">)</span><span class="ss">: DispatchProps =&gt; </span><span class="sc">(</span><span class="ss">{</span>
+<span class="ss">  onNameChanged: </span><span class="sc">(</span><span class="ss">text: string</span><span class="sc">)</span><span class="ss"> =&gt; dispatch</span><span class="sc">(</span><span class="ss">Actions.onNameChanged</span><span class="sc">(</span><span class="ss">text</span><span class="sc">))</span><span class="ss">,</span>
+<span class="ss">}</span><span class="sc">)</span>
+
+<span class="ss">export default connect&lt;State, DispatchProps&gt;</span><span class="sc">(</span>
+<span class="ss">  mapStateToProps,</span>
+<span class="ss">  mapDispatchToProps</span>
+<span class="sc">)(</span><span class="ss">MyComponent</span><span class="sc">)</span></code></pre></div>
+<p>Elm</p>
+<div class="sourceCode"><pre class="sourceCode haskell"><code class="sourceCode haskell"><span class="kw">module</span> <span class="dt">View</span> exposing (view)
+
+<span class="kw">import </span><span class="dt">Html</span> exposing (<span class="dt">Html</span>, div, text)
+<span class="kw">import </span><span class="dt">Html.Attributes</span> exposing (value)
+<span class="kw">import </span><span class="dt">Html.Events</span> exposing (onInput)
+<span class="co">-- import Model and Msg from someplace</span>
+<span class="kw">import </span><span class="dt">Types</span> exposing (<span class="dt">Model</span>, <span class="dt">Msg</span>(..))
+
+
+view <span class="fu">:</span> <span class="dt">Model</span> <span class="ot">-&gt;</span> <span class="dt">Html</span> <span class="dt">Msg</span>
+view model <span class="fu">=</span>
+    div []
+        [ input [ onInput <span class="dt">NameChanged</span>, value model<span class="fu">.</span>yourName ] []
+        , h1 [] [ text model<span class="fu">.</span>yourName ]
+        ]</code></pre></div>
+<p>These modules really do achieve the same things and have roughly the same amount of type safety. That is:</p>
+<ul>
+<li>We know the shape of the app state (that there is a <code>yourName</code>)</li>
+<li>We are certain about the name and type of the action (that there is a <code>NameChanged</code> and it expects a single string)</li>
+</ul>]]></summary>
+</entry>
+<entry>
+    <title>Tasks in Modern Elm</title>
+    <link href="http://ohanhi.com/tasks-in-modern-elm.html" />
+    <id>http://ohanhi.com/tasks-in-modern-elm.html</id>
+    <published>2018-02-09T00:00:00Z</published>
+    <updated>2018-02-09T00:00:00Z</updated>
+    <summary type="html"><![CDATA[<header class="post-header">
+  
+  <h1 class="post-title">Tasks in Modern Elm</h1>
+  
+</header>
+<div class="post-meta">
+  <img class="profile-pic" src="/img/profile_tiny.jpg" alt="">
+  <h3 class="author">
+    <span>Ossi Hanhinen</span>
+    <a href="https://twitter.com/ohanhi">@ohanhi</a>
+  </h3>
+  <p class="post-date">February 9, 2018</p>
+</div>
+
+<hr>
+
+<h3>Read this to</h3>
+<ul class="post-reasons">
+  
+  <li>learn about chaining effects in Elm 0.18</li>
+  
+</ul>
+
+<h3>I expect you to know</h3>
+<ul class="post-prereqs">
+  
+  <li>Elm basics</li>
+  
+</ul>
+
+<hr> <h2 id="why-tasks-matter">Why tasks matter</h2>
+<p>The <a href="https://guide.elm-lang.org/">official guide</a> is great for most things in Elm 0.18, but it still doesn’t cover a very important feature of the language: <code>Task</code>. With the introduction of Elm 0.17, use cases for tasks shrunk from an everyday occurrence to a “you most likely don’t need this” status.</p>
+<p>The use case that does remain is tying several side-effects together. A common example of this is when people need a time stamp to go with their HTTP request. <code>Cmd</code>s cannot be set to run one after another. One <em>could</em> add a subscription to <code>Time.every (Time.second)</code> and have the current time always in the model for example, but a whole bunch of requests can happen in a second, and a millisecond timer is just out of the question. So how do we solve this? Tasks.</p>
+<h2 id="task-basics">Task basics</h2>
+<p>Let’s first take a look at how tasks work on their own, before we start bundling them up with each other. One of the simplest tasks in <code>elm-lang/core</code> just so happens to relate to the example above: <code>Time.now</code>. Here’s what the <a href="http://package.elm-lang.org/packages/elm-lang/core/5.1.1/Time#now">current documentation</a> says about it:</p>
+<div class="sourceCode"><pre class="sourceCode haskell"><code class="sourceCode haskell">now <span class="fu">:</span> <span class="dt">Task</span> x <span class="dt">Time</span></code></pre></div>
+<p>“Get the <code>Time</code> at the moment when this task is run.”</p>
+<p>If you haven’t been dealing with tasks before, you might find it strange that this is not a function that returns a <code>Cmd msg</code>. In fact, it is not a function at all but a constant value! What is going on?</p>
+<p>I find it helpful to think of tasks as if they were shopping lists. A shopping list contains detailed instructions of what should be fetched from the grocery store, but that doesn’t mean the shopping is done. I need to use the list while at the grocery store in order to get an end result. Similarly, the <code>Time.now</code> task is an instruction for the Elm runtime to find the current time, but the instruction does not do anything until it is turned into a command and returned in a branch of <code>update</code>. Elm is running all the errands with the outside world here, we only need to make sure the command gets returned.</p>
+<p>So to use a task, we need to turn it into a command. There are two ways to do this: <code>Task.perform</code> and <code>Task.attempt</code>. As you might guess from the naming, <code>perform</code> simply does the thing, while <code>attempt</code> has an expectation of failure involved. In our case, <code>Time.now</code> cannot really fail, so let’s use perform.</p>
+<div class="sourceCode"><pre class="sourceCode haskell"><code class="sourceCode haskell"><span class="kw">import </span><span class="dt">Time</span> exposing (<span class="dt">Time</span>)
+<span class="kw">import </span><span class="dt">Task</span>
+
+<span class="kw">type</span> <span class="dt">Msg</span> <span class="fu">=</span> <span class="dt">TimeUpdated</span> <span class="dt">Time</span>
+
+getTime <span class="fu">:</span> <span class="dt">Cmd</span> <span class="dt">Msg</span>
+getTime <span class="fu">=</span>
+    Time.now
+        <span class="fu">|&gt;</span> Task.perform <span class="dt">TimeUpdated</span></code></pre></div>
+<p>We can use the <code>getTime</code> command just like any other now and when it completes, it results in a <code>TimeUpdated</code> message with the current time. Great!</p>
+<p>What about tasks that can fail? Let’s use <code>Http.get</code> as an example. There are plenty of ways for an HTTP request to fail, ranging from network issues to expired authentication tokens. These are all categorized under the <code>Http.Error</code> type. If you’ve made HTTP calls in Elm before, you have probably used <code>Http.send</code> to convert the request to a <code>Cmd Msg</code>. Instead of doing that, let’s take a look at how we can do the same using <code>Http.toTask</code>. For simplicity’s sake we will use <code>getString</code>, which does not need a decoder.</p>
+<div class="sourceCode"><pre class="sourceCode haskell"><code class="sourceCode haskell"><span class="kw">import </span><span class="dt">Http</span>
+<span class="kw">import </span><span class="dt">Task</span> exposing (<span class="dt">Task</span>)
+
+<span class="co">-- The message is just like usual, containing a result</span>
+<span class="kw">type</span> <span class="dt">Msg</span> <span class="fu">=</span> <span class="dt">GotResponse</span> (<span class="dt">Result</span> <span class="dt">Http.Error</span> <span class="dt">String</span>)
+
+<span class="co">-- Here we are defining the task</span>
+getResponseTask <span class="fu">:</span> <span class="dt">Task</span> <span class="dt">Http.Error</span> <span class="dt">String</span>
+getResponseTask <span class="fu">=</span>
+    Http.getString <span class="st">&quot;https://jsonplaceholder.typicode.com/posts/1&quot;</span>
+        <span class="fu">|&gt;</span> Http.toTask
+
+<span class="co">-- And here we turn the task into a regular old command</span>
+getResponseCmd <span class="fu">:</span> <span class="dt">Cmd</span> <span class="dt">Msg</span>
+getResponseCmd <span class="fu">=</span>
+    getResponseTask
+        <span class="fu">|&gt;</span> Task.attempt <span class="dt">GotResponse</span></code></pre></div>
+<p>We could have put the whole thing in a single pipeline, of course:</p>
+<pre><code>Http.getString &quot;https://jsonplaceholder.typicode.com/posts/1&quot;
+    |&gt; Http.toTask
+    |&gt; Task.attempt GotResponse</code></pre>
+<p>That would be the same as using <code>Http.send</code> in the first place, though. As a matter of fact, <code>Http.send</code> <strong>is</strong> using <code>toTask</code> and <code>Task.attempt</code> underneath <a href="https://github.com/elm-lang/http/blob/1.0.0/src/Http.elm#L85">(source)</a>.</p>
+<p>A full compiling and working example using an HTTP task can be found <a href="https://ellie-app.com/r9XKVFtjVa1/0">on Ellie</a>.</p>
+<h2 id="chaining-tasks">Chaining tasks</h2>
+<p>Now that we’ve established how we can use single tasks on their own, it is time to use them for their true purpose: effects depending on others. For this we will use a function called <code>andThen</code>. Let’s see what it looks like.</p>
+<p>From the <a href="http://package.elm-lang.org/packages/elm-lang/core/5.1.1/Task#andThen">official documentation</a>:</p>
+<div class="sourceCode"><pre class="sourceCode haskell"><code class="sourceCode haskell">andThen <span class="fu">:</span> (a <span class="ot">-&gt;</span> <span class="dt">Task</span> x b) <span class="ot">-&gt;</span> <span class="dt">Task</span> x a <span class="ot">-&gt;</span> <span class="dt">Task</span> x b</code></pre></div>
+<p>“Chain together a task and a callback. The first task will run, and if it is successful, you give the result to the callback resulting in another task. This task then gets run.”</p>
+<p>Okay, maybe using the tasks from the previous chapter will make this clearer. Let’s imagine we have an API where we can ask for events from the past hour by providing a timestamp of “one hour ago”. This example doesn’t show the imports, decoders etc. to keep it down to the point.</p>
+<div class="sourceCode"><pre class="sourceCode haskell"><code class="sourceCode haskell">getEventsFromPastHour <span class="fu">:</span> <span class="dt">Cmd</span> <span class="dt">Msg</span>
+getEventsFromPastHour <span class="fu">=</span>
+    Time.now
+        <span class="fu">|&gt;</span> Task.andThen
+            (\currentTime <span class="ot">-&gt;</span>
+                getEventsFrom (currentTime <span class="fu">-</span> Time.hour)
+            )
+        <span class="fu">|&gt;</span> Task.attempt <span class="dt">GotResult</span>
+
+
+getEventsFrom <span class="fu">:</span> <span class="dt">Time</span> <span class="ot">-&gt;</span> <span class="dt">Task</span> <span class="dt">Http.Error</span> (<span class="dt">List</span> <span class="dt">Event</span>)
+getEventsFrom time <span class="fu">=</span>
+    Http.get (apiUrl <span class="fu">++</span> <span class="st">&quot;?from=&quot;</span> <span class="fu">++</span> toString time) eventsListDecoder
+        <span class="fu">|&gt;</span> Http.toTask</code></pre></div>
+<p>Let’s try to put this in words.</p>
+<ul>
+<li>Find out what time it is</li>
+<li>And then, ask for events from an hour before the current time</li>
+<li>When done, tell me how it went</li>
+</ul>
+<p>And again, in Elm code:</p>
+<div class="sourceCode"><pre class="sourceCode haskell"><code class="sourceCode haskell">Time.now
+    <span class="fu">|&gt;</span> Task.andThen
+        (\currentTime <span class="ot">-&gt;</span>
+            getEventsFrom (currentTime <span class="fu">-</span> Time.hour)
+        )
+    <span class="fu">|&gt;</span> Task.attempt <span class="dt">GotResult</span></code></pre></div>
+<p>A full compilable example of this is again <a href="https://ellie-app.com/3ZsdCNsjVa1/0">on Ellie</a>. Sadly I couldn’t find a suitable open API to showcase this, but you can see the requests in your browser dev tools.</p>]]></summary>
+</entry>
+<entry>
+    <title>Check palindromes in Elm</title>
+    <link href="http://ohanhi.com/elm-quicks-day-1.html" />
+    <id>http://ohanhi.com/elm-quicks-day-1.html</id>
+    <published>2017-10-20T00:00:00Z</published>
+    <updated>2017-10-20T00:00:00Z</updated>
+    <summary type="html"><![CDATA[<header class="post-header">
+  
+  <h3>elm-quicks 1</h3>
+  
+  <h1 class="post-title">Check palindromes in Elm</h1>
+  
+</header>
+<div class="post-meta">
+  <img class="profile-pic" src="/img/profile_tiny.jpg" alt="">
+  <h3 class="author">
+    <span>Ossi Hanhinen</span>
+    <a href="https://twitter.com/ohanhi">@ohanhi</a>
+  </h3>
+  <p class="post-date">October 20, 2017</p>
+</div>
+
+<hr>
+
+<h3>Read this to</h3>
+<ul class="post-reasons">
+  
+  <li>learn to build an Elm program that accomplishes a simple task</li>
+  
+</ul>
+
+<h3>I expect you to know</h3>
+<ul class="post-prereqs">
+  
+  <li>map and filter</li>
+  
+</ul>
+
+<hr> <p>I teach Elm to my co-workers at Futurice by live-coding each Friday that I can. After each session, I publish the code produced and write a short post explaining the topics covered that time.</p>
+<p>This is the first post in the series.</p>
+<p>All code can be found on <a href="https://github.com/ohanhi/elm-quicks">GitHub</a>.</p>
+<h2 id="day-1-check-that-palindrome">Day 1: Check that palindrome</h2>
+<p>For the first day of live-coding on elm-quicks we created a tiny program that can tell whether a phrase is a palindrome or not. We started with the most simple Elm program possible:</p>
+<div class="sourceCode"><pre class="sourceCode haskell"><code class="sourceCode haskell"><span class="kw">import </span><span class="dt">Html</span>
+
+main <span class="fu">=</span>
+    Html.text <span class="st">&quot;Hello Elm&quot;</span></code></pre></div>
+<p>Next, we added a potential palindrome and a stub for a function that would check the palindrome-ness of a string.</p>
+<div class="sourceCode"><pre class="sourceCode haskell"><code class="sourceCode haskell">palindrome <span class="fu">=</span>
+    <span class="st">&quot;Are we not drawn onward, we few, drawn onward to new era?&quot;</span>
+
+isPalindrome input <span class="fu">=</span>
+    <span class="dt">False</span></code></pre></div>
+<p>This was then used in <code>main</code>:</p>
+<div class="sourceCode"><pre class="sourceCode haskell"><code class="sourceCode haskell">main <span class="fu">=</span>
+    Html.text (toString (isPalindrome palindrome))</code></pre></div>
+<p><code>toString</code> was needed to turn the boolean value from <code>isPalindrome</code> into a string, which is what <code>Html.text</code> expects to receive.</p>
+<p>From then on, we filled out the logic for the function in a <code>let-in</code> structure. The <code>let</code> block is where you can define local variables for a function. The code after <code>in</code> is the actual function body. We also used <code>Debug.log</code> at times to make sure things looked like we thought they should.</p>
+<p>The idea for how we can check for palindrome-ness was: turn the phrase into lower case letters only, and then check if it is equal to its reverse. At the live-coding session, I used a silly method to check if a character is a letter. Thanks to one of the participants I found a much nicer way to do this, so the final code looks like this:</p>
+<div class="sourceCode"><pre class="sourceCode haskell"><code class="sourceCode haskell">isPalindrome input <span class="fu">=</span>
+    <span class="kw">let</span>
+        characters <span class="fu">=</span>
+            <span class="dt">String</span><span class="fu">.</span>toList (<span class="dt">String</span><span class="fu">.</span>toLower input)
+
+        justLetters <span class="fu">=</span>
+            List.filter <span class="dt">Char</span><span class="fu">.</span>isLower characters
+
+        lettersInReverse <span class="fu">=</span>
+            List.reverse justLetters
+    <span class="kw">in</span>
+    justLetters <span class="fu">==</span> lettersInReverse</code></pre></div>
+<p>The entire code can be found here: <a href="https://github.com/ohanhi/elm-quicks/tree/master/day-01">day-01</a>.</p>]]></summary>
+</entry>
+<entry>
+    <title>Elm and the unknown</title>
+    <link href="http://ohanhi.com/elm-and-the-unknown.html" />
+    <id>http://ohanhi.com/elm-and-the-unknown.html</id>
+    <published>2017-05-11T00:00:00Z</published>
+    <updated>2017-05-11T00:00:00Z</updated>
+    <summary type="html"><![CDATA[<header class="post-header">
+  
+  <h1 class="post-title">Elm and the unknown</h1>
+  
+  <h2>Using Elm for project work</h2>
+  
+</header>
+<div class="post-meta">
+  <img class="profile-pic" src="/img/profile_tiny.jpg" alt="">
+  <h3 class="author">
+    <span>Ossi Hanhinen</span>
+    <a href="https://twitter.com/ohanhi">@ohanhi</a>
+  </h3>
+  <p class="post-date">May 11, 2017</p>
+</div>
+
+<hr>
+
+<h3>Read this to</h3>
+<ul class="post-reasons">
+  
+  <li>understand how the constraints in Elm affect day-to-day work</li>
+  
+  <li>know some common cases when you need to reach out to JavaScript</li>
+  
+  <li>see what kinds of options you have in practice</li>
+  
+</ul>
+
+<h3>I expect you to know</h3>
+<ul class="post-prereqs">
+  
+  <li>customer work in the field of software</li>
+  
+  <li>some functional programming principles (e.g. React is enough)</li>
+  
+</ul>
+
+<hr> <h2 id="table-of-contents">Table of contents</h2>
+<ul>
+<li><a href="#foreword">Foreword</a></li>
+<li><a href="#choose-the-right-tool-for-the-job">Choose the right tool for the job</a></li>
+<li><a href="#what-sort-of-a-risk-is-using-elm">What sort of a risk is using Elm?</a></li>
+<li><a href="#when-do-we-need-interop">When do we need interop?</a></li>
+<li><a href="#preface-getting-info-from-the-dom">Preface: Getting info from the DOM</a></li>
+<li><a href="#package-catalog">1. Package catalog</a></li>
+<li><a href="#ports">2. Ports</a></li>
+<li><a href="#installing-non-published-packages">3. Installing non-published packages</a></li>
+<li><a href="#elm-ffi">4. elm-ffi</a></li>
+<li><a href="#conclusion">Conclusion</a></li>
+</ul>
+<h2 id="foreword">Foreword</h2>
+<p>I believe anyone who has worked as a developer knows how to weigh possible solutions on a few levels. There is elegant code and there are customer demands, there are optimized algorithms and there are budget constraints. Like one of my ex-coworkers so eloquently put it:</p>
+<blockquote>
+<p>Professional programming is a balancing act between craftsmanship and getshitdonefulness.</p>
+<p><cite>— An ancient <a href="https://twitter.com/jevakallio">jevakallio</a> proverb</cite></p>
+</blockquote>
+<p>This balancing act also affects people evaluating technology choices: they need to feel safe with the choice they are making. The technology needs to have a certain level of “getshitdonefulness” so that if the day comes when a deadline is looming like a dark cloud above your head, you know you can get it done.</p>
+<p>Elm has gained a great reputation with its beautiful ideology that enforces purity and statelessness. But this is not a solely positive aspect. When it comes to “quick hacks” or wrapping existing JavaScript libraries, Elm seems to be a hindrance. In this post, I explain the tools and strategies to use when Elm’s restrictions or relatively smaller ecosystem come in the way of meeting a deadline.</p>
+<h2 id="choose-the-right-tool-for-the-job">Choose the right tool for the job</h2>
+<p>After posting this article, we had a brief discussion with a coworker. He had a good point that I had not adequately stressed in this article: some kinds of applications are better for Elm than others.</p>
+<p>The tools we use are intrinsically tied to the demands of the products and services we build. Choose the best fit, not the one you currently like best or are most familiar with. Familiarity grows over time, but poor technology choices will slowly but surely take their toll over the course of the project.</p>
+<p><a href="https://twitter.com/mironieminen">Miro</a> gave his consent to use this in the post.</p>
+<hr />
+<p><strong>Miro</strong>: extremely interesting<br> <strong>Miro</strong>: I’d like to challenge your conclusions a little bit - because I doubt everything and I’m not really yet sold with Elm. for eg the maps example, it seems that it can be done, but would you do an app which needs heavy maps integration with Elm?<br> <strong>Miro</strong>: and what about the changes to the language, there was mention about 2-day refactor required by it - what is your gut feeling, are there more radical changes like that still to be expected?<br> <strong>Miro</strong>: actually that previous thread about this is a good one [link within our internal chat]<br></p>
+<p><strong>ohanhi</strong>: <span class="citation">@Miro</span>, If the application is a map app, I wouldn’t do it in Elm.<br> <strong>ohanhi</strong>: There are cases where Elm is a great choice, there are cases where React is a great choice and there are cases where Handlebars and vanilla JS is a great choice<br> <strong>ohanhi</strong>: I am definitely not saying that Elm is the <em>End-all And Only Best Solution For Frontend Get It Now for 49.99!</em><br> <strong>ohanhi</strong>: As with all things, you as a consultant need to consider the fitness of the technology to your overall understanding of what the application is supposed to be.<br></p>
+<p><strong>Miro</strong>: yeah I know - and thank you for the tip; that &amp; the article itself was really good</p>
+<p><strong>ohanhi</strong>: Cool, thanks. I’ll add it.</p>
+<hr />
+<p>I hope this clears things up for the rest of you, too!</p>
+<h2 id="what-sort-of-a-risk-is-using-elm">What sort of a risk is using Elm?</h2>
+<p>Elm is a young language as far as programming languages go. First version was released in 2012, and it is a <abbr title="Benevolent Dictator For Life">BDFL</abbr> sort of a language like Python. This means there is a single person who guides the language design and prepares new releases. For Elm, this is <a href="https://twitter.com/czaplic">Evan Czaplicki</a> (for Python, it’s <a href="https://twitter.com/gvanrossum">Guido van Rossum</a>). There is a strong but fairly small community around the core development of Elm.</p>
+<p>Elm is ready to be used for production. Many companies, such as <a href="https://www.pivotaltracker.com/blog/Elm-pivotal-tracker/">Pivotal Tracker</a> and <a href="https://twitter.com/AbletonDev/status/861580662620508160">Ableton</a>, are already using it for real customer-facing things. I have used Elm in two big customer projects myself and another customer project by Futurice was just open sourced (<a href="https://github.com/Tradenomiliitto/tradenomiitti">source on GitHub</a>).</p>
+<p>Personally I’ve never felt blocked by Elm. As I mentioned, I have used Elm in two customer projects, one of which was heavily based on drag and drop and the other one had things like image uploading. For both of these, I used ports and had no trouble at all (except for dealing with the HTML5 Drag and Drop API).</p>
+<p>The language is still in flux, and some <a href="http://elm-lang.org/blog/farewell-to-frp">big changes</a> have shook up the user community. Removing Signals was definitely the biggest and boldest move I’ve seen in language design, and it happened right in the middle of one of our customer projects. Keeping a cool head, we waited for a few weeks for the dependencies to be updated, and then I took the plunge.</p>
+<p>It took me two working days to get the entire codebase to compile again. Once it did, all but one of our end-to-end tests passed. I had figured that while I was already working on the entire codebase, I could also make some refactoring to how our user authentication worked. The test failed because I had forgotten to wire up something related to logging out. Once that was done, it all worked again.</p>
+<p>Had this sort of a change happened in a JavaScript codebase, we would most likely have not had the time to upgrade at all. The confidence I have for the compiler is 100% the reason why I took on this endeavor. I knew if I just keep going through the compile errors, I will emerge on the other side with a codebase that is <em>sound</em>. There can’t be any undefined variables, missed cases or calls to functions with the wrong number of arguments anywhere.</p>
+<p>The restrictions in Elm are what make the language incredibly useful for lean projects: no matter how fast you move, you will always have code that is working and sound.</p>
+<p>There are times when Elm alone is not enough, so let’s move on to the interop story.</p>
+<h2 id="when-do-we-need-interop">When do we need interop?</h2>
+<p>There are three major cases where you may be forced to get outside the safety of Elm:</p>
+<ol style="list-style-type: decimal">
+<li>Direct access to the DOM</li>
+<li>Web platform stuff not yet implemented in Elm</li>
+<li>Large and/or closed-source third party JavaScript like maps, live customer service chats etc.</li>
+</ol>
+<p>For anything else, you can stay within Elm, albeit it might take a little more time to code the feature.</p>
+<h3 id="direct-access-to-the-dom">Direct access to the DOM</h3>
+<p>In short, Elm doesn’t have any manner of getting a reference to a DOM node. This may be a problem in some cases, particularly when you need to call a method on the element like <code>myDiv.getBoundingBox()</code>. These are usually quite easily handled with ports, but you do need to use e.g. an <code>id</code> attribute to target the correct element.</p>
+<h3 id="web-platform-stuff">Web platform stuff</h3>
+<p>Certain features like the File API and the Web Audio API are not implemented in Elm yet. Again, ports can probably do what you need rather easily.</p>
+<h3 id="large-third-party-js">Large third party JS</h3>
+<p>This is a bit trickier. Depending on how invasive and how uncommon the thing is, you may need to figure out how best to integrate it on your own. Maybe it should be a Web Component within your Elm application. Maybe it is best handled outside of the Elm app as a totally separate part of the DOM. Maybe you have to come up with a client-server API to communicate between Elm and the JavaScript library.</p>
+<p>In all of the above cases, the Elm Slack (<a href="http://elmlang.herokuapp.com/">join here</a>) is a great place to ask for help and ideas!</p>
+<p>Now that you have an idea of when some sort of interop is often needed, let’s go through the different strategies in the order I would personally use them. The priorities may be a little bit opinionated, so feel free to make your own judgment.</p>
+<h2 id="preface-getting-info-from-the-dom">Preface: Getting info from the DOM</h2>
+<p>If all you need is to get some information from the DOM, there may be a way to do that in pure Elm. Soren Debois has written <a href="https://medium.com/@debois/elm-the-dom-8c9883190d20">a whole article</a> on the subject, but it really boils down to this: you can decode any data from a DOM event by attaching a custom listener with <code>Html.Events.on</code>. I use this technique in my <a href="http://package.elm-lang.org/packages/ohanhi/autoexpand/latest">autoexpanding textarea</a> (<a href="https://www.github.com/ohanhi/autoexpand/">source code</a>).</p>
+<h2 id="package-catalog">1. Package catalog</h2>
+<p>This should always be your first step:<br> <strong>Check if a package solving your problem already exists on <a href="http://package.elm-lang.org/">package.elm-lang.org</a>!</strong></p>
+<p>The Elm ecosystem is growing by the day, so things that didn’t exist last month or even last week might exist now.</p>
+<p>Here are some examples of things that do exist:</p>
+<ul>
+<li>“routing”: <a href="http://package.elm-lang.org/packages/elm-lang/navigation/latest">navigation</a> and <a href="http://package.elm-lang.org/packages/evancz/url-parser/latest">url-parser</a></li>
+<li>DOM support for focus and scroll</li>
+<li>great date and time handling libraries</li>
+<li>date pickers</li>
+<li>autocomplete input</li>
+<li>keyboard combination helpers</li>
+</ul>
+<h2 id="ports">2. Ports</h2>
+<p>Ports are Elm’s built-in way to send messages to, and receive messages from, JavaScript. They can be used for every sort of need, though I have to admit the ergonomics are best suited for things that can be classified as <em>message passing</em>. This is how they look like:</p>
+<div class="sourceCode"><pre class="sourceCode haskell"><code class="sourceCode haskell"><span class="co">-- Elm to JS</span>
+port requestUuid <span class="fu">:</span> () <span class="ot">-&gt;</span> <span class="dt">Cmd</span> msg
+
+<span class="co">-- JS to Elm</span>
+port receiveUuid <span class="fu">:</span> (<span class="dt">String</span> <span class="ot">-&gt;</span> msg) <span class="ot">-&gt;</span> <span class="dt">Sub</span> msg</code></pre></div>
+<p>You tie the <code>receiveUuid</code> port to a specific message:</p>
+<div class="sourceCode"><pre class="sourceCode haskell"><code class="sourceCode haskell"><span class="co">-- add subscription to the port</span>
+subscriptions <span class="fu">=</span>
+    receiveUuid <span class="dt">UuidReceived</span>
+
+<span class="co">-- when a value comes in, you handle it just like any other message</span>
+update msg model <span class="fu">=</span>
+    <span class="kw">case</span> msg <span class="kw">of</span>
+        <span class="dt">UuidReceived</span> uuid <span class="ot">-&gt;</span>
+            useTheNewUuid uuid
+        <span class="co">-- ...</span></code></pre></div>
+<p>On the JavaScript side, you simply <code>subscribe</code> to Elm to JS ports, and can <code>send</code> data through JS to Elm ports.</p>
+<div class="sourceCode"><pre class="sourceCode javascript"><code class="sourceCode javascript"><span class="va">myElmApp</span>.<span class="va">ports</span>.<span class="va">requestUuid</span>.<span class="at">subscribe</span>(<span class="kw">function</span>() <span class="op">{</span>
+  <span class="kw">var</span> newUuid <span class="op">=</span> <span class="va">uuid</span>.<span class="at">v4</span>()<span class="op">;</span>
+  <span class="va">myElmApp</span>.<span class="va">ports</span>.<span class="va">receiveUuid</span>.<span class="at">send</span>(newUuid)<span class="op">;</span>
+<span class="op">}</span>)<span class="op">;</span></code></pre></div>
+<p><strong>Note</strong>: Ports might strike you as an unnecessarily elaborate way of dealing with something “as simple as” calling external functions. However, once I understood how this approach made all communication to the outside completely safe and decoupled from the uncertainty of JavaScript, I came to really appreciate the idea. <a href="https://elmtown.github.io/2017/05/09/history-in-elm-town-ports-episode-13.html">Episode 13</a> of the Elm Town podcast is entirely about the thought processes and design considerations behind ports, so I highly recommend listening to it in case you are interested.</p>
+<h2 id="installing-non-published-packages">3. Installing non-published packages</h2>
+<p>By default, packages containing ports or “native” JavaScript code are not accepted on the package catalog. Some packages have gone through an acceptance process and gotten whitelisted, but one can’t simply wrap e.g. Moment.js or Google Maps and publish that to package.elm-lang.org.</p>
+<p>Obviously people do that sort of stuff anyway, and there is a way to install those too: <a href="https://github.com/gdotdesign/elm-github-install">elm-install</a>. With this tool, you can add any GitHub repository as a dependency to your <code>elm-package.json</code> file and install the dependencies just as easily as you normally would.</p>
+<p>Just remember you might be introducing runtime exceptions in your applications this way.</p>
+<div class="sourceCode"><pre class="sourceCode bash"><code class="sourceCode bash"><span class="co"># when you only have published packages in your elm-package.json</span>
+$ <span class="ex">elm-package</span> install
+
+<span class="co"># when you have non-published packages in your elm-package.json</span>
+$ <span class="ex">elm-install</span></code></pre></div>
+<p><strong>Note</strong>: As well as packages containing JavaScript, you can use elm-install for installing “private packages” from any Git repository or even your own hard drive. See the <a href="https://github.com/gdotdesign/elm-github-install#advanced-usage">advanced usage</a> section on the readme for more info.</p>
+<h2 id="elm-ffi">4. elm-ffi</h2>
+<p>If you have a lot of experience with Elm already, and find that something is too much of a hassle to do with ports, there is an alternative: <a href="https://github.com/eeue56/elm-ffi">elm-ffi</a>. You can install it with the elm-install tool.</p>
+<p>With elm-ffi you can create functions - both synchronous and asynchronous - that call native JavaScript functions directly.</p>
+<div class="sourceCode"><pre class="sourceCode haskell"><code class="sourceCode haskell"><span class="kw">import </span><span class="dt">FFI</span>
+
+log <span class="fu">:</span> a <span class="ot">-&gt;</span> ()
+log thing <span class="fu">=</span>
+    FFI.sync <span class="st">&quot;console.log(_0);&quot;</span> [ FFI.asIs thing ]
+        <span class="fu">|&gt;</span> (\_ <span class="ot">-&gt;</span> ())</code></pre></div>
+<h3 id="installation">Installation</h3>
+<p>Put the necessary lines in your elm-package.json</p>
+<div class="sourceCode"><pre class="sourceCode javascript"><code class="sourceCode javascript"><span class="op">{</span>
+  <span class="co">// ...</span>
+  <span class="st">&quot;native-modules&quot;</span><span class="op">:</span> <span class="kw">true</span><span class="op">,</span>
+  <span class="st">&quot;dependencies&quot;</span><span class="op">:</span> <span class="op">{</span>
+    <span class="st">&quot;eeue56/elm-ffi&quot;</span><span class="op">:</span> <span class="st">&quot;1.3.0 &lt;= v &lt; 2.0.0&quot;</span>
+  <span class="op">},</span>
+  <span class="st">&quot;dependency-sources&quot;</span><span class="op">:</span> <span class="op">{</span>
+    <span class="st">&quot;eeue56/elm-ffi&quot;</span><span class="op">:</span> <span class="st">&quot;git@github.com:eeue56/elm-ffi&quot;</span>
+  <span class="op">},</span>
+  <span class="co">// ...</span>
+<span class="op">}</span></code></pre></div>
+<p>Then use the tool on the command line:</p>
+<div class="sourceCode"><pre class="sourceCode bash"><code class="sourceCode bash">$ <span class="ex">elm-install</span></code></pre></div>
+<p>I shouldn’t even have to point out that using elm-ffi is a very easy way to make your Elm application unsafe. Only use it if you really deem it necessary.</p>
+<h2 id="conclusion">Conclusion</h2>
+<p>There are real use cases to reach out to the JavaScript land in almost any larger Elm application. Most of the time ports are nice enough to write and use. There are more than one way to handle interop, however. I hope this article fleshed out the situation nicely and helps you weigh out the options.</p>]]></summary>
+</entry>
+<entry>
+    <title>Introduction to data structures</title>
+    <link href="http://ohanhi.com/master-elm-2-data-structures.html" />
+    <id>http://ohanhi.com/master-elm-2-data-structures.html</id>
+    <published>2017-04-21T00:00:00Z</published>
+    <updated>2017-04-21T00:00:00Z</updated>
+    <summary type="html"><![CDATA[<header class="post-header">
+  
+  <h3>Master Elm pt. 2</h3>
+  
+  <h1 class="post-title">Introduction to data structures</h1>
+  
+</header>
+<div class="post-meta">
+  <img class="profile-pic" src="/img/profile_tiny.jpg" alt="">
+  <h3 class="author">
+    <span>Ossi Hanhinen</span>
+    <a href="https://twitter.com/ohanhi">@ohanhi</a>
+  </h3>
+  <p class="post-date">April 21, 2017</p>
+</div>
+
+<hr>
+
+<h3>Read this to</h3>
+<ul class="post-reasons">
+  
+  <li>get an overview on all of the basic data structures in Elm</li>
+  
+</ul>
+
+<h3>I expect you to know</h3>
+<ul class="post-prereqs">
+  
+  <li>nothing in particular</li>
+  
+</ul>
+
+<hr> <p>Most people come to Elm from JavaScript, and traditionally JavaScript has really only had two data structures, object and array. Today I will go through all of the basic data structures in Elm, telling when to use them and comparing them to JavaScript as applicable.</p>
+<p><em>Note: the double dash <code>--</code> starts a comment in Elm for the rest of the line, like <code>//</code> in JavaScript.</em></p>
+<p>I suggest you to read these in order, but here’s a quick navigation just in case:</p>
+<ul>
+<li><a href="#record">Record</a></li>
+<li><a href="#tuple">Tuple</a></li>
+<li><a href="#list">List</a></li>
+<li><a href="#set">Set</a></li>
+<li><a href="#dict">Dict</a></li>
+<li><a href="#array">Array</a></li>
+</ul>
+<h2 id="record">Record</h2>
+<p>Records are the closest thing to the object in JavaScript, but they are statically typed:</p>
+<div class="sourceCode"><pre class="sourceCode haskell"><code class="sourceCode haskell">dog <span class="fu">=</span>
+    { name <span class="fu">=</span> <span class="st">&quot;Fluffy&quot;</span>
+    , mother <span class="fu">=</span> <span class="st">&quot;Muffin&quot;</span>
+    }</code></pre></div>
+<p>The type of <code>dog</code> here is now defined, even though I didn’t specify anything. This record has two <code>String</code> fields: <code>name</code> and <code>mother</code>. There’s no way of changing it anymore. The order of the fields is not relevant to the type.</p>
+<p>Usually we write out the type definition, too. This might be done like so:</p>
+<div class="sourceCode"><pre class="sourceCode haskell"><code class="sourceCode haskell"><span class="kw">type</span> alias <span class="dt">Dog</span> <span class="fu">=</span>
+    { mother <span class="fu">:</span> <span class="dt">String</span>
+    , name <span class="fu">:</span> <span class="dt">String</span>
+    }</code></pre></div>
+<p>Note that the record was using <code>=</code>, and the type alias is using <code>:</code>. In Elm, the colon <code>:</code> reads as “has the type”. Another thing to note is that <code>type alias</code> is literally an alias for a type. These are always interchangeable:</p>
+<div class="sourceCode"><pre class="sourceCode haskell"><code class="sourceCode haskell"><span class="co">-- type annotation says:</span>
+<span class="co">-- &quot;dogA has the type Dog&quot;</span>
+dogA <span class="fu">:</span> <span class="dt">Dog</span>
+dogA <span class="fu">=</span>
+    { name <span class="fu">=</span> <span class="st">&quot;Fluffy&quot;</span>
+    , mother <span class="fu">=</span> <span class="st">&quot;Muffin&quot;</span>
+    }
+
+<span class="co">-- type annotation says:</span>
+<span class="co">-- &quot;dogB has the type (record with two String fields, mother and name)&quot;</span>
+dogB <span class="fu">:</span> { mother <span class="fu">:</span> <span class="dt">String</span>, name <span class="fu">:</span> <span class="dt">String</span> }
+dogB <span class="fu">=</span>
+    { name <span class="fu">=</span> <span class="st">&quot;Fluffy&quot;</span>
+    , mother <span class="fu">=</span> <span class="st">&quot;Muffin&quot;</span>
+    }
+
+sameDogs <span class="fu">=</span>
+    dogA <span class="fu">==</span> dogB <span class="co">-- True</span></code></pre></div>
+<p>The two parts of syntax related to records are getting and setting:</p>
+<div class="sourceCode"><pre class="sourceCode haskell"><code class="sourceCode haskell"><span class="co">-- Getting</span>
+dogA<span class="fu">.</span>name <span class="co">-- &quot;Fluffy&quot;</span>
+<span class="co">-- or</span>
+<span class="fu">.</span>name dogA <span class="co">-- &quot;Fluffy&quot;</span>
+
+<span class="co">-- Setting (always returns a new record)</span>
+{ dogA <span class="fu">|</span> name <span class="fu">=</span> <span class="st">&quot;Fluuuffy&quot;</span> } <span class="co">-- { name = &quot;Fluuuffy&quot;, mother = &quot;Muffin&quot; }</span></code></pre></div>
+<p>Remember that you can also pattern match on records!</p>
+<div class="sourceCode"><pre class="sourceCode haskell"><code class="sourceCode haskell"><span class="co">-- type annotation says:</span>
+<span class="co">-- dogToString is a function from Dog to String</span>
+dogToString <span class="fu">:</span> <span class="dt">Dog</span> <span class="ot">-&gt;</span> <span class="dt">String</span>
+dogToString ({ name } as dog) <span class="fu">=</span>
+    <span class="st">&quot;The name of this dog is &quot;</span>
+        <span class="fu">++</span> name
+        <span class="fu">++</span> <span class="st">&quot; and all of the data is: &quot;</span>
+        <span class="fu">++</span> toString dog</code></pre></div>
+<h2 id="tuple">Tuple</h2>
+<p>Tuples are basically records without field names. Like records, the fields can be of varying types: one piece of a tuple can be a number while the other is a string. They are quite common in Elm, since they are very handy to create on the fly.</p>
+<p>Tuples can look a little confusing at first, since they are constructed with parentheses <code>()</code> and the items are separated with commas <code>,</code>.</p>
+<div class="sourceCode"><pre class="sourceCode haskell"><code class="sourceCode haskell"><span class="co">-- info has the type &quot;tuple of Int, String and String&quot;</span>
+info <span class="fu">:</span> ( <span class="dt">Int</span>, <span class="dt">String</span>, <span class="dt">String</span> )
+info <span class="fu">=</span>
+    ( <span class="dv">42</span>, <span class="st">&quot;Life&quot;</span>, <span class="st">&quot;everything&quot;</span> )</code></pre></div>
+<p>You can pattern match on tuples too:</p>
+<div class="sourceCode"><pre class="sourceCode haskell"><code class="sourceCode haskell">getComment <span class="fu">:</span> ( <span class="dt">Bool</span>, <span class="dt">String</span> ) <span class="ot">-&gt;</span> <span class="dt">String</span>
+getComment pair <span class="fu">=</span>
+    <span class="kw">case</span> pair <span class="kw">of</span>
+        ( <span class="dt">True</span>, word ) <span class="ot">-&gt;</span>
+            <span class="st">&quot;Oh yes, &quot;</span> <span class="fu">++</span> word <span class="fu">++</span> <span class="st">&quot; it is!&quot;</span>
+
+        ( <span class="dt">False</span>, word ) <span class="ot">-&gt;</span>
+            <span class="st">&quot;Nope, &quot;</span> <span class="fu">++</span> word <span class="fu">++</span> <span class="st">&quot; isn&#39;t right.&quot;</span></code></pre></div>
+<p>Note: If you see the empty tuple <code>()</code> somewhere, it’s because <code>()</code> holds no information whatsoever, and therefore serves as a type (and value) for certain cases where the contents would be ignored anyway.</p>
+<h2 id="list">List</h2>
+<p><code>List</code>s are the only collection data structure that has any special syntax in Elm. They are quite similar to the JavaScript arrays. However, Elm lists don’t have indices for the items. They are simply sequences of items of a single type.</p>
+<div class="sourceCode"><pre class="sourceCode haskell"><code class="sourceCode haskell"><span class="co">-- dogs has the type &quot;a list containing Dogs&quot;</span>
+dogs <span class="fu">:</span> <span class="dt">List</span> <span class="dt">Dog</span>
+dogs <span class="fu">=</span>
+    [ fluffy
+    , scruffy
+    ]</code></pre></div>
+<p>Lists are written with brackets <code>[]</code> and items within are separated with commas <code>,</code> just like JavaScript arrays.</p>
+<p>Adding an item in front of a list is very efficient, because it doesn’t affect the rest of the list in any way! For the CS folks, Elm lists are immutable linked lists. In the drawing below, the blue one is the existing list with items always linking to the next one. The yellow is the new list. As you can see, only the new item <code>&quot;E&quot;</code> had to be added, linking into the previous first item <code>&quot;D&quot;</code>.</p>
+<div class="figure">
+<img src="/img/data-structures/list.jpg" alt="Drawing of a List" />
+<p class="caption">Drawing of a List</p>
+</div>
+<p>You can combine (concatenate) two lists with <code>++</code>, and add a single item to the front of a list with <code>::</code> (pronounced cons).</p>
+<div class="sourceCode"><pre class="sourceCode haskell"><code class="sourceCode haskell">moreDogs <span class="fu">=</span>
+<span class="ot">    sparky ::</span> [ lassie, fifi ] <span class="fu">++</span> [ muffin ] <span class="co">-- [ sparky, lassie, fifi, muffin ]</span></code></pre></div>
+<p>Lists are the most used collection in Elm. They are very versatile, but if you need to access, and especially update certain items often, you should look at <code>Array</code> and <code>Dict</code>.</p>
+<p>Oh and also, lists are the only collection you can pattern match on! This is very useful for some algorithms.</p>
+<div class="sourceCode"><pre class="sourceCode haskell"><code class="sourceCode haskell">getFirstTwo <span class="fu">:</span> <span class="dt">List</span> <span class="dt">Int</span> <span class="ot">-&gt;</span> <span class="dt">Maybe</span> ( <span class="dt">Int</span>, <span class="dt">Int</span> )
+getFirstTwo list <span class="fu">=</span>
+    <span class="kw">case</span> list <span class="kw">of</span>
+        <span class="co">-- cons (::) can be used to &quot;deconstruct&quot; a list when pattern matching</span>
+<span class="ot">        first :: second ::</span> rest <span class="ot">-&gt;</span>
+            <span class="dt">Just</span> ( first, second )
+
+        _ <span class="ot">-&gt;</span>
+            <span class="dt">Nothing</span> <span class="co">-- there weren&#39;t enough items in the list</span></code></pre></div>
+<h2 id="set">Set</h2>
+<p>Sets are an often overlooked data structure, even though they are very useful in some cases. (Ironically, I missed this section in the original edition of the article, too.) A set is an orderless collection of items, where each item can only appear once. You can also use Set to get only unique values in a List with <code>Set.toList (Set.fromList myList)</code>. Keep in mind the resulting list won’t necessarily be in the same order, however.</p>
+<p>As a practical example, in the lottery game Keno each number can only occur once.</p>
+<div class="sourceCode"><pre class="sourceCode haskell"><code class="sourceCode haskell">kenoRound <span class="fu">:</span> <span class="dt">Set</span> <span class="dt">Int</span>
+kenoRound <span class="fu">=</span>
+    Set.fromList
+        [ <span class="dv">1</span>, <span class="dv">10</span>, <span class="dv">43</span>, <span class="dv">39</span>, <span class="co">-- ...</span>
+        ]</code></pre></div>
+<p>Trying to <code>Set.insert 10 kenoRound</code> would return the same set as before, because <code>10</code> was already in the set.</p>
+<p>Set has a whole bunch of interesting functions, such as <code>union</code>, <code>intersect</code> and <code>diff</code>, which are what Venn diagrams were made to depict:</p>
+<div class="figure">
+<img src="/img/data-structures/set-intersection.jpg" alt="Intersection of two sets" />
+<p class="caption">Intersection of two sets</p>
+</div>
+<p>In the figure above, the highlighted part is the intersection of the two sets. Union would be all of the yellow and blue set, and difference would be everything in the two sets that is <strong>not</strong> highlighted.</p>
+<p>Note: The core Set can only have <code>comparable</code>s as keys: numbers and strings, really. In a pinch, this might help you: a Set is really just a Dict that uses only the keys, and uses <code>()</code> for all the values. Thus, <a href="http://package.elm-lang.org/packages/eeue56/elm-all-dict/latest"><code>eeue56/elm-all-dict</code></a> can be used for making a Set implementation of your own.</p>
+<h2 id="dict">Dict</h2>
+<p><code>Dict</code> is short for dictionary: the data structure has keywords and values. You can only find a value by its keyword, not the other way around. The keywords also need to be unique within the Dict. This data structure is incredibly useful for storing things like translations, but also collections of records that are referenced by their IDs.</p>
+<p>Here’s a depiction of how data is organized in a Dict:</p>
+<div class="figure">
+<img src="/img/data-structures/dict.jpg" alt="Drawing of a Dict" />
+<p class="caption">Drawing of a Dict</p>
+</div>
+<p>This is what it looks like in code:</p>
+<div class="sourceCode"><pre class="sourceCode haskell"><code class="sourceCode haskell"><span class="kw">type</span> alias <span class="dt">Id</span> <span class="fu">=</span> <span class="dt">Int</span>
+
+authors <span class="fu">:</span> <span class="dt">Dict</span> <span class="dt">Id</span> <span class="dt">Author</span>
+authors <span class="fu">=</span>
+    Dict.fromList
+        [ ( <span class="dv">0</span>, { name <span class="fu">=</span> <span class="st">&quot;Margaret Atwood&quot;</span> } )
+        , ( <span class="dv">1</span>, { name <span class="fu">=</span> <span class="st">&quot;John Irving&quot;</span> } )
+        ]</code></pre></div>
+<p>Note that getting a value from a Dict is always an unknown, and because Elm guarantees no runtime exceptions, <code>Dict.get</code> returns a <code>Maybe</code> value.</p>
+<p>Note: The core Dict can only have <code>comparable</code>s as keys: numbers and strings, really. If you need other kinds of keys, check out <a href="http://package.elm-lang.org/packages/eeue56/elm-all-dict/latest"><code>eeue56/elm-all-dict</code></a>!</p>
+<h2 id="array">Array</h2>
+<p>First off, if you are looking to use <code>Array</code>s, use <a href="http://package.elm-lang.org/packages/Skinney/elm-array-exploration/latest"><code>Skinney/elm-array-exploration</code></a>, which will soon replace the current core implementation.</p>
+<p>Array occupies a fixed chunk of the computer’s memory. If you add an item so that the array gets bigger, a new bigger chunk will be allocated somewhere else and then all of the contents are copied over. This makes adding items inefficient. But unlike List, you can efficiently retrieve or update e.g. the 50th item in an Array.</p>
+<p>This is how arrays look like in my mind:</p>
+<div class="figure">
+<img src="/img/data-structures/array.jpg" alt="Drawing of an Array" />
+<p class="caption">Drawing of an Array</p>
+</div>
+<p>And this is how it looks in code:</p>
+<div class="sourceCode"><pre class="sourceCode haskell"><code class="sourceCode haskell">words <span class="fu">:</span> <span class="dt">Array</span> <span class="dt">String</span>
+words <span class="fu">=</span>
+    Array.fromList [ <span class="st">&quot;Hello&quot;</span>, <span class="st">&quot;world&quot;</span> ]
+
+
+newWords <span class="fu">:</span> <span class="dt">Array</span> <span class="dt">String</span>
+newWords <span class="fu">=</span>
+    Array.set <span class="dv">1</span> <span class="st">&quot;you!&quot;</span> words <span class="co">-- == Array.fromList [ &quot;Hello&quot;, &quot;you!&quot; ]</span></code></pre></div>]]></summary>
+</entry>
+<entry>
+    <title>From Jekyll to Hakyll</title>
+    <link href="http://ohanhi.com/from-jekyll-to-hakyll.html" />
+    <id>http://ohanhi.com/from-jekyll-to-hakyll.html</id>
+    <published>2017-04-17T00:00:00Z</published>
+    <updated>2017-04-17T00:00:00Z</updated>
+    <summary type="html"><![CDATA[<header class="post-header">
+  
+  <h1 class="post-title">From Jekyll to Hakyll</h1>
+  
+</header>
+<div class="post-meta">
+  <img class="profile-pic" src="/img/profile_tiny.jpg" alt="">
+  <h3 class="author">
+    <span>Ossi Hanhinen</span>
+    <a href="https://twitter.com/ohanhi">@ohanhi</a>
+  </h3>
+  <p class="post-date">April 17, 2017</p>
+</div>
+
+<hr>
+
+<h3>Read this to</h3>
+<ul class="post-reasons">
+  
+  <li>learn why and how I moved to using Hakyll for my site</li>
+  
+</ul>
+
+<h3>I expect you to know</h3>
+<ul class="post-prereqs">
+  
+  <li>some Haskell doesn't hurt, but it isn't really necessary</li>
+  
+</ul>
+
+<hr> <p>As you may know, I have a rather basic website with just a home page and some blog posts. I find writing blog posts in <a href="https://daringfireball.net/projects/markdown/">Markdown</a> really nice. I think it is an excellent format that lets me keep focus on the actual content rather than the markup. These two things, writing in Markdown to create a simple website, come together in <a href="https://jekyllrb.com/">Jekyll</a>, a static site generator written in Ruby. What’s more, GitHub Pages lets you push a Jekyll site source code and it will automatically transform it into the static HTML files. Pretty handy!</p>
+<p>Setting up Jekyll for development is not fun, though. First off, you need Ruby (probably via <code>rvm</code>) and Rubygems installed, and then running <code>gem install jekyll</code> will likely end up failing multiple times because of missing native extensions. Because of <a href="http://www.nokogiri.org/tutorials/installing_nokogiri.html">these issues</a>, I wanted to try something different. Since I have tried learning Haskell a little, and have heard good things about <a href="https://jaspervdj.be/hakyll/">Hakyll</a>, that was what I reached for.</p>
+<p>So far it’s been real nice, and rebuilding the site happens almost instantaneously!</p>
+<h2 id="first-steps">First steps</h2>
+<p>I started by simply following the thorough <a href="https://jaspervdj.be/hakyll/tutorials.html">tutorials</a>. After installing <a href="http://www.haskellstack.org/">Stack</a>, it was just this:</p>
+<div class="sourceCode"><pre class="sourceCode bash"><code class="sourceCode bash">$ <span class="ex">stack</span> install hakyll
+$ <span class="ex">hakyll-init</span> my-site
+$ <span class="bu">cd</span> my-site
+$ <span class="ex">stack</span> build
+$ <span class="ex">stack</span> exec site watch</code></pre></div>
+<p>And I had a demo site up and running on a development server. Sweet. Next up, I copied over my old posts from the Jekyll site and checked they showed up. They did! Of course, the templates were still the demo ones, but that was next on my list.</p>
+<h2 id="translating-the-templates">Translating the templates</h2>
+<p>My Jekyll site was using Liquid templates, and Hakyll has its own little template syntax, so I had to transform them from one format to another. It really was quite simple though:</p>
+<p>Jekyll:</p>
+<div class="sourceCode"><pre class="sourceCode html"><code class="sourceCode html"><span class="kw">&lt;title&gt;</span>{% if page.title %}{{ page.title }} - {% endif %}Ossi Hanhinen<span class="kw">&lt;/title&gt;</span></code></pre></div>
+<p>Hakyll:</p>
+<div class="sourceCode"><pre class="sourceCode html"><code class="sourceCode html"><span class="kw">&lt;title&gt;</span>$if(title)$ $title$ - $endif$Ossi Hanhinen<span class="kw">&lt;/title&gt;</span></code></pre></div>
+<p>Jekyll:</p>
+<div class="sourceCode"><pre class="sourceCode html"><code class="sourceCode html">{% for post in site.posts %}
+  <span class="kw">&lt;li&gt;</span>
+    <span class="kw">&lt;a</span><span class="ot"> href=</span><span class="st">&quot;{{ post.url }}&quot;</span><span class="kw">&gt;</span>{{ post.title }}<span class="kw">&lt;/a&gt;</span> {{ post.date | date: &quot;%b %-d, %Y&quot; }}
+  <span class="kw">&lt;/li&gt;</span>
+{% endfor %}</code></pre></div>
+<p>Hakyll:</p>
+<div class="sourceCode"><pre class="sourceCode html"><code class="sourceCode html">$for(posts)$
+    <span class="kw">&lt;li&gt;</span>
+        <span class="kw">&lt;a</span><span class="ot"> href=</span><span class="st">&quot;$url$&quot;</span><span class="kw">&gt;</span>$title$<span class="kw">&lt;/a&gt;</span> - $date$
+    <span class="kw">&lt;/li&gt;</span>
+$endfor$</code></pre></div>
+<p>If anything, the Hakyll syntax seems easier to read. More of the logic happens in Haskell code… which brings us to configuring the site. My GitHub Pages build worked in such a way that a post that was originally <code>_posts/2017-04-17-my-blog-post.md</code> ended up at the root level, without the date prefix. <code>ohanhi.com/my-blog-post.html</code>, for example. I wanted to keep this structure in order not to break anyone’s links. (I also kept the <code>ohanhi.github.io</code> site up, pointing to <code>ohanhi.com</code> just in case.) By default, Hakyll uses a structure where posts are under <code>/posts/</code>, with the date prefix left untouched.</p>
+<p>So in my <code>site.hs</code> file, I edited the posts to have a custom routing:</p>
+<div class="sourceCode"><pre class="sourceCode haskell"><code class="sourceCode haskell"><span class="co">-- in the `main` function</span>
+match <span class="st">&quot;posts/*&quot;</span> <span class="fu">$</span> <span class="kw">do</span>
+    route   <span class="fu">$</span> customRoute <span class="fu">$</span> pathToPostName <span class="fu">.</span> toFilePath
+    compile <span class="fu">$</span> pandocCompiler
+        <span class="fu">&gt;&gt;=</span> loadAndApplyTemplate <span class="st">&quot;templates/post.html&quot;</span>    postCtx
+        <span class="fu">&gt;&gt;=</span> relativizeUrls</code></pre></div>
+<p>I am not very good at Haskell yet, so please don’t judge me, but I did this:</p>
+<div class="sourceCode"><pre class="sourceCode haskell"><code class="sourceCode haskell"><span class="ot">pathToPostName ::</span> <span class="dt">String</span> <span class="ot">-&gt;</span> <span class="dt">String</span>
+pathToPostName path <span class="fu">=</span>
+    path
+        <span class="fu">|&gt;</span> splitAll <span class="st">&quot;/&quot;</span>
+        <span class="fu">|&gt;</span> (\(p <span class="fu">:</span> name <span class="fu">:</span> _) <span class="ot">-&gt;</span> splitExtension name )
+        <span class="fu">|&gt;</span> (\(n, e) <span class="ot">-&gt;</span> drop <span class="dv">11</span> n <span class="fu">++</span> <span class="st">&quot;.html&quot;</span>)
+
+
+(<span class="fu">|&gt;</span>) <span class="fu">=</span> flip (<span class="fu">$</span>)</code></pre></div>
+<p>It’s not the prettiest thing, but it works as long as I adhere to my filename scheme.</p>
+<p>A trickier thing, however, was my custom lists that I like to add to the posts: <code>i_expect_you_to_know</code> and <code>read_this_to</code>. You might have seen those at the top of this post, too. In my source code they look like this:</p>
+<div class="sourceCode"><pre class="sourceCode yaml"><code class="sourceCode yaml"><span class="ot">---</span>
+<span class="fu">title:</span><span class="at"> From Jekyll to Hakyll</span>
+<span class="fu">read_this_to:</span>
+  <span class="kw">-</span> learn why and how I moved to using Hakyll for my site
+<span class="fu">i_expect_you_to_know:</span>
+  <span class="kw">-</span> some Haskell doesn<span class="st">&#39;t hurt, but it isn&#39;</span>t really necessary
+<span class="ot">---</span></code></pre></div>
+<p>In Hakyll, the template variables <code>$thing$</code> are bound within a <code>Context</code>. So what I needed to do is somehow bring the list contents into the post’s context. Luckily there was a <a href="https://jaspervdj.be/hakyll/reference/src/Hakyll-Web-Tags.html">solution for tags</a> (which I don’t use), so I could copy the idea from there. This is what I ended up with:</p>
+<div class="sourceCode"><pre class="sourceCode haskell"><code class="sourceCode haskell"><span class="ot">postCtx ::</span> <span class="dt">Context</span> <span class="dt">String</span>
+postCtx <span class="fu">=</span>
+    dateField <span class="st">&quot;date&quot;</span> <span class="st">&quot;%B %-d, %Y&quot;</span>
+      <span class="ot">`mappend`</span> constField <span class="st">&quot;base_url&quot;</span> <span class="st">&quot;https://ohanhi.com&quot;</span>
+      <span class="ot">`mappend`</span> listContextWith <span class="st">&quot;i_expect_you_to_know&quot;</span>
+      <span class="ot">`mappend`</span> listContextWith <span class="st">&quot;read_this_to&quot;</span>
+      <span class="ot">`mappend`</span> defaultContext</code></pre></div>
+<p>Works for me!</p>
+<p>If you’re interested, you can check the whole implementation from the <a href="https://github.com/ohanhi/ohanhi.com/blob/master/site.hs"><code>site.hs</code> source code</a>.</p>
+<p>With that, and a couple of easy <code>copyFileCompiler</code>s, I had everything set up to build the site just like it was before.</p>
+<h2 id="deployment">Deployment</h2>
+<p>Initially I thought I would keep using GitHub Pages for the hosting, but since it doesn’t support building Hakyll sites on its own, I figured it would actually make my life a little harder than it could be. Essentially I could either manually run the builds and commit the built site (and not the source code) to the <code>master</code> branch, or set up a CI service to run the build and do the commits, which frankly sounds pretty daunting. I decided to look for alternatives. Zeit’s <code>now</code> doesn’t offer custom domains at the free tier, but <a href="http://surge.sh/">surge</a> does.</p>
+<p>Following their guide I was quickly able to get my custom domain set up and everything working. Now I can simply build the site locally and run:</p>
+<div class="sourceCode"><pre class="sourceCode bash"><code class="sourceCode bash"><span class="ex">~/Hobby/ohanhi.com</span> (master)› <span class="ex">surge</span> _site
+
+    <span class="ex">Surge</span> - surge.sh
+
+              <span class="ex">email</span>: *********@gmail.com
+              <span class="ex">token</span>: *****************
+       <span class="ex">project</span> path: _site
+               <span class="ex">size</span>: 34 files, 2.2 MB
+             <span class="ex">domain</span>: ohanhi.com
+             <span class="ex">upload</span>: [================] 100%, eta: 0.0s
+   <span class="ex">propagate</span> on CDN: [====================] 100%
+               <span class="ex">plan</span>: Free
+              <span class="ex">users</span>: *********@gmail.com
+         <span class="ex">IP</span> Address: 45.55.110.124
+
+    <span class="ex">Success</span>! Project is published and running at ohanhi.com</code></pre></div>
+<p>Super nice!</p>
+<p><strong>PS.</strong> With this transition, I also added the Disqus comment section to all posts. Feel free to give me pointers on my Haskell on there. :)</p>]]></summary>
+</entry>
+<entry>
+    <title>Elm Decoders and Secret Spy Messages</title>
+    <link href="http://ohanhi.com/secret-spy-messages.html" />
+    <id>http://ohanhi.com/secret-spy-messages.html</id>
+    <published>2017-01-24T00:00:00Z</published>
+    <updated>2017-01-24T00:00:00Z</updated>
+    <summary type="html"><![CDATA[<header class="post-header">
+  
+  <h1 class="post-title">Elm Decoders and Secret Spy Messages</h1>
+  
+</header>
+<div class="post-meta">
+  <img class="profile-pic" src="/img/profile_tiny.jpg" alt="">
+  <h3 class="author">
+    <span>Ossi Hanhinen</span>
+    <a href="https://twitter.com/ohanhi">@ohanhi</a>
+  </h3>
+  <p class="post-date">January 24, 2017</p>
+</div>
+
+<hr>
+
+<h3>Read this to</h3>
+<ul class="post-reasons">
+  
+  <li>get a novel point of view into what Elm's JSON decoders are</li>
+  
+</ul>
+
+<h3>I expect you to know</h3>
+<ul class="post-prereqs">
+  
+  <li>what JSON is</li>
+  
+  <li>some Elm</li>
+  
+</ul>
+
+<hr> <p>This isn’t a post that explains how to do decoding in detail, but introduces a way of thinking about decoding in Elm.</p>
+<h2 id="background">Background</h2>
+<p>One thing pretty much everybody learning Elm finds a little hard to understand are JSON decoders. The reason we need make such contraptions in the first place is simple: Elm is statically typed and doesn’t have runtime exceptions. To get there from unreliable string data, we have to be explicit about how to read it in.</p>
+<p>Let’s look at a simple Decoder in two different styles:</p>
+<div class="sourceCode"><pre class="sourceCode haskell"><code class="sourceCode haskell"><span class="kw">import </span><span class="dt">Json.Decode</span> exposing (..)
+<span class="kw">import </span><span class="dt">Json.Decode.Pipeline</span> exposing (..)
+
+<span class="kw">type</span> alias <span class="dt">Dog</span> <span class="fu">=</span>
+    { name <span class="fu">:</span> <span class="dt">String</span>
+    , weight <span class="fu">:</span> <span class="dt">Float</span>
+    }
+
+<span class="co">-- Using the core&#39;s Json.Decode</span>
+dogDecoder <span class="fu">:</span> <span class="dt">Decoder</span> <span class="dt">Dog</span>
+dogDecoder <span class="fu">=</span>
+    map2 <span class="dt">Dog</span>
+        (field <span class="st">&quot;name&quot;</span> string)
+        (field <span class="st">&quot;weight&quot;</span> float)
+
+
+<span class="co">-- Using NoRedInk/elm-decode-pipeline</span>
+dogDecoder2 <span class="fu">:</span> <span class="dt">Decoder</span> <span class="dt">Dog</span>
+dogDecoder2 <span class="fu">=</span>
+    decode <span class="dt">Dog</span>
+        <span class="fu">|&gt;</span> required <span class="st">&quot;name&quot;</span> string
+        <span class="fu">|&gt;</span> required <span class="st">&quot;weight&quot;</span> float</code></pre></div>
+<p>I really recommend the Pipeline approach. You can handle objects of any size with the same syntax, and never have to switch between e.g. <code>map2</code> and <code>map3</code>, which is great!</p>
+<p>Either way we do it though, we end up with something that’s a <em>constant</em>: a <code>Decoder Dog</code>. This is not a function, so it doesn’t do anything. To actually decode something, we need to apply this Decoder to a value, which can be done for example like so:</p>
+<div class="sourceCode"><pre class="sourceCode haskell"><code class="sourceCode haskell">myDog <span class="fu">=</span>
+    Json.Decode.decodeString
+        dogDecoder
+        <span class="st">&quot;&quot;&quot;{ &quot;</span>name<span class="st">&quot;: &quot;</span><span class="dt">Lassie</span><span class="st">&quot;, &quot;</span>weight<span class="st">&quot;: 31.4 }&quot;&quot;&quot;</span>
+
+<span class="co">-- myDog == { name = &quot;Lassie&quot;, weight = 31.4 }</span></code></pre></div>
+<p>Here, <code>decodeString</code> is what applies our Decoder to the value. In most cases in the real world, this happens somewhere outside of our own code: we provide a Decoder as an argument when making an HTTP request and it will get applied automatically if the request succeeds. The same way of thinking still applies.</p>
+<h2 id="decoding-secret-spy-messages">Decoding Secret Spy Messages</h2>
+<p>When I was a kid I loved all kinds of “spy stuff”. My parents would buy me these secret agent kits for presents at times, and I had so much fun taking covert pictures of the neighbours’ dogs with my spy camera, listening to strangers’ conversations with the incredible paraboloid microphone and so on. Some of the kits also came with secret messages that could only be read with a special flashlight, or by using a code breaker of some sort.</p>
+<p>One of these secret messages was like this:</p>
+<ul>
+<li>The message was on a card with seemingly arbitrary characters</li>
+<li>The code breaker was a plastic film with some transparent holes in a mostly opaque block</li>
+<li>Put together, they revealed the secret message hidden within the “arbitrary” characters</li>
+<li>But only if the code breaker is correct for the message card</li>
+</ul>
+<hr />
+<p>Here is a mouse-draggable demo of how it felt like:</p>
+<div id="secretmsg">
+
+</div>
+<script src="/js/secretmsg.js"></script>
+<script>
+Elm.SecretMessage.embed(document.getElementById('secretmsg'));
+</script>
+<p>If you’re using a phone or a tablet, <a href="/img/secretmsg.gif">see this as an animated GIF instead</a>.</p>
+<h2 id="umm-so-how-does-this-relate-to-decoding">Umm… So how does this relate to decoding?</h2>
+<p>This is exactly how JSON decoders in Elm work!</p>
+<ul>
+<li>The card with arbitrary data is the JSON</li>
+<li>We don’t know what useful information it might contain without decoding it</li>
+<li>It can contain a bunch of things we’re not interested in, and this won’t affect the end result</li>
+<li>The plastic code breaker is the Decoder</li>
+<li>We need to have it ready before-hand</li>
+<li>It doesn’t “do” anything on its own</li>
+<li>Put together, they reveal the the secret meaning hidden within the data</li>
+<li>But only if the holes in the decoder and the data structure match up!</li>
+</ul>
+<p>Elm decoders are a bit more advanced than a piece of transparent plastic, of course: they also check the format of the data, so a number can’t sneak into the place of a string and vice versa. What’s even cooler, when a Decoder doesn’t match up with the data we get nice readable errors like <code>Expecting a Float at _.weight but instead got: &quot;whoops&quot;</code> instead of just random garble.</p>
+<p>I hope this helps you think about Decoders in the future!</p>
+<hr />
+<p><strong>PS.</strong> The source code for the draggy-droppy thingie is <a href="https://github.com/ohanhi/secret-message">open source on GitHub</a>.</p>
+<p><strong>PPS.</strong> You may have noticed the order of things in Decoders matter.</p>
+<p>This is why:</p>
+<p>Saying</p>
+<pre><code>map2 Dog
+    field1Decoder
+    field2Decoder</code></pre>
+<p>is the same as saying</p>
+<pre><code>map2 (\name weight -&gt; Dog name weight)
+    field1Decoder
+    field2Decoder</code></pre>
+<p>or even</p>
+<pre><code>map2 (\name weight -&gt; { name = name, weight = weight })
+    field1Decoder
+    field2Decoder</code></pre>
+<p>In essence, <code>Dog</code> is being used as a <em>function to construct the record</em>. All type aliases in Elm can be used this way, in any context!</p>]]></summary>
+</entry>
+<entry>
+    <title>The Why and When of Choosing Elm</title>
+    <link href="http://ohanhi.com/why-and-when-of-choosing-elm-visual.html" />
+    <id>http://ohanhi.com/why-and-when-of-choosing-elm-visual.html</id>
+    <published>2017-01-13T00:00:00Z</published>
+    <updated>2017-01-13T00:00:00Z</updated>
+    <summary type="html"><![CDATA[<header class="post-header">
+  
+  <h1 class="post-title">The Why and When of Choosing Elm</h1>
+  
+  <h2>the Visual Edition</h2>
+  
+</header>
+<div class="post-meta">
+  <img class="profile-pic" src="/img/profile_tiny.jpg" alt="">
+  <h3 class="author">
+    <span>Ossi Hanhinen</span>
+    <a href="https://twitter.com/ohanhi">@ohanhi</a>
+  </h3>
+  <p class="post-date">January 13, 2017</p>
+</div>
+
+<hr>
+
+<h3>Read this to</h3>
+<ul class="post-reasons">
+  
+  <li>gain a quick understanding of where Elm fits the picture well and where it poses challenges</li>
+  
+</ul>
+
+<h3>I expect you to know</h3>
+<ul class="post-prereqs">
+  
+  <li>the basics of frontend development</li>
+  
+</ul>
+
+<hr> <p><em>For a textual version of this content, <a href="why-and-when-of-choosing-elm.html">see here</a>.</em></p>
+<div class="figure">
+<img src="img/why-when-elm/why-01.jpg" />
+
+</div>
+<p>Each picture has an expandable text section if you’d like some explanation for the graphics.</p>
+<details> <summary>Click on this to try expanding…</summary>
+<p>
+This is a quick overview of why and when you should consider choosing Elm over JavaScript.
+</p>
+<p></details></p>
+<div class="figure">
+<img src="img/why-when-elm/why-02.jpg" />
+
+</div>
+<details> <summary>What is Elm?</summary>
+<ul>
+<li>
+Elm is a language (and “framework”) for building web frontend applications
+</li>
+<li>
+Can be used in place of HTML, CSS and JavaScript, and compiles into them
+</li>
+</ul>
+<p></details></p>
+<div class="figure">
+<img src="img/why-when-elm/why-03.jpg" />
+
+</div>
+<details> <summary>JS gets more complex, Elm gets simpler</summary>
+<ul>
+<li>
+The amount of features, or the “API surface”, of JavaScript grows all the time
+</li>
+<li>
+Elm’s API surface is much much smaller to begin with, and it’s actually been shrinking the past few releases
+</li>
+</ul>
+<p></details></p>
+<div class="figure">
+<img src="img/why-when-elm/why-04.jpg" />
+
+</div>
+<details> <summary>(Summary of the table)</summary>
+<ul>
+<li>
+Elm <strong>does not</strong> have <code>this</code>, <code>null</code>/<code>undefined</code>, runtime exceptions or multiple paradigms
+</li>
+<li>
+Elm <strong>does</strong> have guarantees of correctness, settled-upon tooling and great ease of refactoring
+</li>
+<li>
+JavaScript has the opposite
+</li>
+</ul>
+<p></details></p>
+<div class="figure">
+<img src="img/why-when-elm/why-05.jpg" />
+
+</div>
+<details> <summary>Lean development is continuous refactoring</summary>
+<ul>
+<li>
+The features on the previous picture, especially the fickleness of refactoring and lack of guarantees, leads to the fact that JavaScript is in fact poorly suited for lean development
+</li>
+<li>
+Elm, on the other hand, is a dream to work with when the requirements change and the software needs to be adapted
+</li>
+</ul>
+<p></details></p>
+<div class="figure">
+<img src="img/why-when-elm/why-06.jpg" />
+
+</div>
+<details> <summary>Learning a completely new language may sound like a huge investment, but:</summary>
+<ul>
+<li>
+JavaScript is not a very well defined area of expertise. There’s TypeScript, Flow, React, Vue.js, Angular, plus the build tools
+</li>
+<li>
+Essentially every a JavaScript project is a unique combination of libraries and design decisions
+</li>
+<li>
+Take at least 1-2 weeks for new developers to familiarize themselves with
+</li>
+<li>
+Elm takes about 2 weeks for new developers to get productive with
+</li>
+</ul>
+<p></details></p>
+<div class="figure">
+<img src="img/why-when-elm/why-07.jpg" />
+
+</div>
+<details> <summary>Elm has incredible upsides</summary>
+<ul>
+<li>
+Even a newcomer is not likely to inadvertently mess up a codebase, because the language has such strong guarantees
+</li>
+<li>
+A superb compiler that tells what the problem in my code is, and often suggests how to fix it
+</li>
+<li>
+The code is very easy to read, and it always follows the same general pattern
+</li>
+</ul>
+<p></details></p>
+<div class="figure">
+<img src="img/why-when-elm/why-08.jpg" />
+
+</div>
+<details> <summary>What about the “bus factor”, what if Elm’s development was dropped?</summary>
+<ul>
+<li>
+We’d be fine using the current version of Elm for the foreseeable future
+</li>
+<li>
+The committee behind JavaScript specifications have the “One JavaScript” principle, which basically means “everything that has been introduced to JavaScript, stays in JavaScript”
+</li>
+<li>
+There is no reason why you’d <strong>need</strong> the new JavaScript features, and if you want to, you can call that from Elm
+</li>
+</ul>
+<p></details></p>
+<div class="figure">
+<img src="img/why-when-elm/why-09.jpg" />
+
+</div>
+<details> <summary>Elm is a poor fit for things like</summary>
+<ul>
+<li>
+Mostly static pages (e.g. news websites)
+</li>
+<li>
+Very short projects where you actually want to use ready-made UI components (e.g. MVP admin UIs)
+</li>
+<li>
+Lots of integration with terrible third-party JavaScript (advertisements in particular)
+</li>
+<li>
+Sites that need page-by-page visibility in search engines
+</li>
+</ul>
+<p></details></p>
+<div class="figure">
+<img src="img/why-when-elm/why-10.jpg" />
+
+</div>
+<details> <summary>Elm is great for</summary>
+<ul>
+<li>
+Single page applications
+</li>
+<li>
+Bespoke design
+</li>
+<li>
+Longer project (&gt; 2 months)
+</li>
+<li>
+Especially helpful for bigger frontend teams
+</li>
+</ul>
+<p></details></p>]]></summary>
+</entry>
+<entry>
+    <title>The Why and When of Choosing Elm</title>
+    <link href="http://ohanhi.com/why-and-when-of-choosing-elm.html" />
+    <id>http://ohanhi.com/why-and-when-of-choosing-elm.html</id>
+    <published>2017-01-10T00:00:00Z</published>
+    <updated>2017-01-10T00:00:00Z</updated>
+    <summary type="html"><![CDATA[<header class="post-header">
+  
+  <h1 class="post-title">The Why and When of Choosing Elm</h1>
+  
+</header>
+<div class="post-meta">
+  <img class="profile-pic" src="/img/profile_tiny.jpg" alt="">
+  <h3 class="author">
+    <span>Ossi Hanhinen</span>
+    <a href="https://twitter.com/ohanhi">@ohanhi</a>
+  </h3>
+  <p class="post-date">January 10, 2017</p>
+</div>
+
+<hr>
+
+<h3>Read this to</h3>
+<ul class="post-reasons">
+  
+  <li>gain a quick understanding of where Elm fits the picture well and where it poses challenges</li>
+  
+</ul>
+
+<h3>I expect you to know</h3>
+<ul class="post-prereqs">
+  
+  <li>the basics of frontend development</li>
+  
+</ul>
+
+<hr> <p><em>For a visual version of this content, <a href="why-and-when-of-choosing-elm-visual.html">see here</a>.</em></p>
+<h2 id="what-is-elm">What is Elm?</h2>
+<ul>
+<li>Language (and “framework”) for building web frontend applications</li>
+<li>Can be used in place of HTML, CSS and JavaScript</li>
+<li>Compiles into the above</li>
+</ul>
+<h2 id="why-choose-elm">Why choose Elm?</h2>
+<h3 id="the-problem-with-javascript">The problem with JavaScript</h3>
+<ul>
+<li>Basically nobody knows all of JavaScript - in fact it is getting more and more complex each year</li>
+<li>Different people have very different ways of using the language (object-oriented, functional, this-less, …)</li>
+<li>With JavaScript, anything may suddenly fail in production because of an oversight</li>
+<li>Nothing can save you from that (except maybe boatloads of menial tests: what if this function is called without arguments, with an empty array…)</li>
+<li>It takes a great deal of discipline to keep code readable and adhere to the project’s code style</li>
+<li>Huge potential for regressions when refactoring</li>
+<li>Every project has a wildly different build scheme since there is no “official” or even generally settled-upon toolchain</li>
+<li>It is common for builds to break because a library was updated</li>
+</ul>
+<p>➡️ JavaScript is unwieldy in big projects</p>
+<p>➡️ JavaScript is in fact poorly suited for lean development, because refactoring is risky</p>
+<h3 id="how-elm-solves-it">How Elm solves it</h3>
+<ul>
+<li>Elm is a simple and compact language</li>
+<li>It does not have the baggage of JavaScript’s history</li>
+<li>Past releases have made it simpler and simpler - they removing language features that cause confusion</li>
+<li>It has a great type system that helps model data and application states
+<ul>
+<li>This can be used to eliminate an entire category of bugs: arriving in impossible states</li>
+</ul></li>
+<li>If the code compiles, it is correct (can still have logic errors, of course)</li>
+<li>Elm has no <code>null</code> or <code>undefined</code></li>
+<li>Elm has no runtime exceptions except for <code>Debug.crash</code></li>
+<li>All potential cases need to be handled - no surprises or unhandled errors, guaranteed!</li>
+</ul>
+<blockquote>
+<p>Using TypeScript or Flow can give some of the benefits, but many libraries’ typings will still non-exhaustive)</p>
+</blockquote>
+<ul>
+<li>Elm enforces writing code in a single paradigm and style (functional, no mutable state)</li>
+<li>It comes with great tooling out of the box</li>
+<li>Builds can never break because of library updates, because semantic versioning is ensured by the package manager</li>
+</ul>
+<p>➡️ Elm is very well suited for lean development, because refactoring Elm is fun and we can do it with confidence!</p>
+<h3 id="but-a-new-language-surely-its-an-additional-cost">But a new language, surely it’s an additional cost!</h3>
+<ul>
+<li>JavaScript projects use a combination of e.g. React, Redux, redux-loop, etc.</li>
+<li>They might even be using TypeScript or Flow, which are languages with great improvements over plain JS
+<ul>
+<li>But they build on top of JS, and as said, basically no one knows even all of JavaScript</li>
+</ul></li>
+<li>There is very likely no other project with the exact same libraries and/or code style
+<ul>
+<li>New dev in a JS project needs at least a week or two to learn the project</li>
+</ul></li>
+<li>Elm is a small language
+<ul>
+<li>It takes a couple of weeks to be productive</li>
+<li>About a month or two to master all of it</li>
+</ul></li>
+<li>The Elm compiler is the state of the art when it comes to <a href="http://elm-lang.org/blog/compilers-as-assistants">friendly error messages</a></li>
+<li>All Elm projects follow the same general pattern, because the language doesn’t allow anything else</li>
+<li>Elm code is easy to read as it communicates intentions well</li>
+<li>New dev can’t inadvertently mess up an Elm project</li>
+</ul>
+<h3 id="what-if-the-language-development-is-discontinued-in-a-year">What if the language development is discontinued in a year</h3>
+<ul>
+<li>Even if the language development was discontinued today, it would be fine</li>
+<li>There’s no reason why a project couldn’t be using an older version of Elm for years to come</li>
+<li>JS as a compile target is solid, because all old JS code will continue to work in browsers also in the future. (One JavaScript (1JS) principle)</li>
+</ul>
+<h2 id="when-to-choose-elm-and-when-not-to">When to choose Elm and when not to</h2>
+<h3 id="what-is-elm-a-poor-fit-for">What is Elm a poor fit for</h3>
+<ul>
+<li>Mostly static pages (e.g. news websites)</li>
+<li>Very short projects where you actually want to use ready-made UI components (e.g. MVP admin UIs)</li>
+<li>Lots of integration with terrible third-party JavaScript (advertisements in particular)</li>
+<li>Sites that need server-side rendering</li>
+</ul>
+<blockquote>
+<p>Also worth remembering, it can’t be used to build a backend</p>
+</blockquote>
+<h3 id="what-is-elm-great-for">What is Elm great for</h3>
+<ul>
+<li>Single page applications</li>
+<li>Bespoke design</li>
+<li>Longer project (&gt; 2 months)</li>
+<li>Especially helpful for bigger frontend teams</li>
+</ul>]]></summary>
+</entry>
+<entry>
+    <title>Base for a game in Elm 0.17</title>
+    <link href="http://ohanhi.com/base-for-game-elm-017.html" />
+    <id>http://ohanhi.com/base-for-game-elm-017.html</id>
+    <published>2016-05-18T00:00:00Z</published>
+    <updated>2016-05-18T00:00:00Z</updated>
+    <summary type="html"><![CDATA[<header class="post-header">
+  
+  <h1 class="post-title">Base for a game in Elm 0.17</h1>
+  
+  <h2>Revisiting the "hard way"</h2>
+  
+</header>
+<div class="post-meta">
+  <img class="profile-pic" src="/img/profile_tiny.jpg" alt="">
+  <h3 class="author">
+    <span>Ossi Hanhinen</span>
+    <a href="https://twitter.com/ohanhi">@ohanhi</a>
+  </h3>
+  <p class="post-date">May 18, 2016</p>
+</div>
+
+<hr>
+
+<h3>Read this to</h3>
+<ul class="post-reasons">
+  
+  <li>learn the basics of Elm</li>
+  
+  <li>get acquainted with subscriptions</li>
+  
+</ul>
+
+<h3>I expect you to know</h3>
+<ul class="post-prereqs">
+  
+  <li>some programming</li>
+  
+</ul>
+
+<hr> <p><a href="http://chilicorn.org/"><img src="https://img.shields.io/badge/Sponsored%20by-Chilicorn-brightgreen.svg" /></a></p>
+<p>Licensed under <a href="https://creativecommons.org/licenses/by/4.0/">CC BY 4.0</a>.</p>
+<h2 id="foreword">Foreword</h2>
+<p>I first learned Elm about a year ago, in May 2015. I fell in love. I also wrote <a href="https://gist.github.com/ohanhi/0d3d83cf3f0d7bbea9db">an article</a> describing how to get started with the language by implementing the base for a game. The title of the article, <em>Learning FP the hard way</em>, was supposed to be a joke of sorts, as Elm is in fact a very easy language to learn! I’m not sure how many people got that. :)</p>
+<p>Since then, I have used Elm in two separate customer projects, and it has definitely <a href="http://futurice.com/blog/elm-in-the-real-world">made my work better</a>!</p>
+<p>The recent update (0.17) meant a <a href="http://elm-lang.org/blog/farewell-to-frp">rather large shift</a> in the way the language works, so I decided to revisit the original subject. So here it is: the base for a Space Invaders game in Elm 0.17!</p>
+<p>You can find all of the code on <a href="https://github.com/ohanhi/elm-game-base">GitHub</a>, along with some setup instructions, but it is also listed at the bottom of this article.</p>
+<h2 id="elm-what-was-it-again">Elm, what was it again?</h2>
+<p>Elm is a beautiful little functional language that makes building frontend web applications easy and fun. If you’re interested in an overview, I gave a talk about the language at GeeCON 2016, and the annotated slides are here: <a href="https://speakerdeck.com/ohanhi/confidence-in-the-frontend-with-elm-1">Confidence in the frontend with Elm</a>.</p>
+<h2 id="modeling-the-problem">Modeling the problem</h2>
+<p>First off, let’s re-iterate what we want to achieve.</p>
+<p>From the player’s perspective the program should be like this:</p>
+<ul>
+<li>There is a ship representing the player near the bottom of the screen</li>
+<li>The player can move the ship left and right with corresponding arrow buttons</li>
+<li>The player can shoot with the space bar</li>
+</ul>
+<p>And from the ship’s perspective the same is:</p>
+<ul>
+<li>Ship has a position on a 1D axis</li>
+<li>Ship can have a velocity (positive or negative)</li>
+<li>Ship changes position according to its velocity</li>
+<li>Ship can shoot</li>
+</ul>
+<p>This gives us a definition of what the <code>Model</code> of our little program should look like:</p>
+<div class="sourceCode"><pre class="sourceCode haskell"><code class="sourceCode haskell"><span class="kw">type</span> alias <span class="dt">Model</span> <span class="fu">=</span>
+    { position <span class="fu">:</span> <span class="dt">Float</span>
+    , velocity <span class="fu">:</span> <span class="dt">Float</span>
+    , shotsFired <span class="fu">:</span> <span class="dt">Int</span>
+    }</code></pre></div>
+<p>This is an example of a data structure called <a href="http://guide.elm-lang.org/core_language.html#records">Record</a>. It is like a strongly typed and immutable cousin of the JavaScript object. Now, we only defined the type of the data so far, so let’s create a model to start from:</p>
+<div class="sourceCode"><pre class="sourceCode haskell"><code class="sourceCode haskell">model <span class="fu">:</span> <span class="dt">Model</span> <span class="co">-- this is a type annotation</span>
+model <span class="fu">=</span>
+    { position <span class="fu">=</span> <span class="dv">0</span>
+    , velocity <span class="fu">=</span> <span class="dv">0</span>
+    , shotsFired <span class="fu">=</span> <span class="dv">0</span>
+    }</code></pre></div>
+<p>What we have here is a simple value, or a constant. As everything in Elm is immutable, <code>model</code> will always be the same no matter what happens in the app. If we tried to redefine it, the compiler would simply complain that there are multiple definitions for the same name and the code would not compile.</p>
+<p>Alright, moving on to moving the ship! I remember from high school that _s = v*dt_, or moved distance is the velocity times timedifference. So that’s how we can update the ship. In Elm, that would be something like the following.</p>
+<div class="sourceCode"><pre class="sourceCode haskell"><code class="sourceCode haskell">applyPhysics <span class="fu">:</span> <span class="dt">Time</span> <span class="ot">-&gt;</span> <span class="dt">Model</span> <span class="ot">-&gt;</span> <span class="dt">Model</span>
+applyPhysics dt model <span class="fu">=</span>
+    { model <span class="fu">|</span> position <span class="fu">=</span> model<span class="fu">.</span>position <span class="fu">+</span> (model<span class="fu">.</span>velocity <span class="fu">*</span> dt) }</code></pre></div>
+<p>The above is the way to update a record. We start off with the <code>model</code> as the base, but update the <code>position</code> as per the formula. Note that <code>{ record | x = newX }</code> creates a new record, as everything in Elm is immutable. We will never have to worry about affecting anyone else’s state by accident. Even better, we can be certain no one else is affecting our state either!</p>
+<p>The type annotation on <code>applyPhysics</code> says: given a <code>Float</code> and a <code>Model</code>, I will return a <code>Model</code>, but also: given a <code>Float</code>, I will return <code>Model -&gt; Model</code>. For example, <code>(applyPhysics 16.7)</code> would actually return a working function to which we can pass a <code>Model</code>, and get the physics-applied ship as the return value. This property is called <a href="http://en.wikipedia.org/wiki/Currying">Currying</a> and all Elm functions automatically behave this way. Currying is very useful in many cases, but that is a topic for another article.</p>
+<p>We can update the other properties in the very same way:</p>
+<div class="sourceCode"><pre class="sourceCode haskell"><code class="sourceCode haskell">updateVelocity <span class="fu">:</span> <span class="dt">Float</span> <span class="ot">-&gt;</span> <span class="dt">Model</span> <span class="ot">-&gt;</span> <span class="dt">Model</span>
+updateVelocity newVelocity model <span class="fu">=</span>
+    { model <span class="fu">|</span> velocity <span class="fu">=</span> newVelocity }
+
+incrementShotsFired <span class="fu">:</span> <span class="dt">Model</span> <span class="ot">-&gt;</span> <span class="dt">Model</span>
+incrementShotsFired model <span class="fu">=</span>
+    { model <span class="fu">|</span> shotsFired <span class="fu">=</span> model<span class="fu">.</span>shotsFired <span class="fu">+</span> <span class="dv">1</span> }</code></pre></div>
+<p>Using these little functions we can update all of our state, but we’re missing something quite necessary: 1. View of the current state, and 2. getting input from the user and turning that into updates.</p>
+<h2 id="showing-the-state">Showing the state</h2>
+<p>Our game wouldn’t be much use if it couldn’t show the current state in some way. To keep things as simple as possible, let’s just print the model as text. We can do it like so:</p>
+<div class="sourceCode"><pre class="sourceCode haskell"><code class="sourceCode haskell">view <span class="fu">:</span> <span class="dt">Model</span> <span class="ot">-&gt;</span> <span class="dt">Html</span> msg
+view model <span class="fu">=</span>
+    text (toString model)</code></pre></div>
+<p>Here, <code>toString</code> turns the <code>model</code> record into a readable String representation of it, and <code>text</code> from the Html package turns a String into an HTML text node. Pretty handy! Now the strange part here might be the return type of our <code>view</code> function: <code>Html msg</code>. We don’t need to worry about it too much right now, but what the type annotation is saying is in essence: “I am returning some HTML, which may produce messages of the <code>msg</code> variety.”</p>
+<p>This will do for now, so let’s move on to the interactive part!</p>
+<h2 id="subscribing-to-user-input">Subscribing to user input</h2>
+<p>Elm 0.17 brought a new way of reacting to changes: Subscriptions. What we will do is this: we will subscribe to certain changes in the world, and when they happen, give the changes some names. We want to control the game by keyboard, so let’s start by taking a look at the <a href="http://package.elm-lang.org/packages/elm-lang/keyboard/1.0.0/Keyboard"><code>Keyboard</code></a> package. It seems we want to listen for both pressing down on buttons, and letting go of them. With these, we can determine when the user is pressing down on a certain key. We will need something else aswell: to keep updating the position of our ship, we need to have a somewhat steady rhythm of <code>applyPhysics</code> with the time difference! That we can get using the <a href="http://package.elm-lang.org/packages/elm-lang/animation-frame/1.0.0/AnimationFrame#diffs"><code>AnimationFrame.diffs</code></a>. Bundling that up into code looks a little like this.</p>
+<p>Defining the messages in our program:</p>
+<div class="sourceCode"><pre class="sourceCode haskell"><code class="sourceCode haskell"><span class="kw">type</span> <span class="dt">Msg</span>
+    <span class="fu">=</span> <span class="dt">TimeUpdate</span> <span class="dt">Time</span>
+    <span class="fu">|</span> <span class="dt">KeyDown</span> <span class="dt">KeyCode</span>
+    <span class="fu">|</span> <span class="dt">KeyUp</span> <span class="dt">KeyCode</span></code></pre></div>
+<p>Here we have a union type. For something to be considered a <code>Msg</code> in this module, it will have to be one of the above (<code>TimeUpdate</code>, <code>KeyDown</code> or <code>KeyUp</code>). Furthermore, the contents of e.g. <code>TimeUpdate</code> must be something that can be considered <code>Time</code>, and so on.</p>
+<p>Okay, now let’s declare the subscriptions we need, and name them with our newly-defined message types.</p>
+<div class="sourceCode"><pre class="sourceCode haskell"><code class="sourceCode haskell">subscriptions <span class="fu">:</span> <span class="dt">Model</span> <span class="ot">-&gt;</span> <span class="dt">Sub</span> <span class="dt">Msg</span>
+subscriptions model <span class="fu">=</span>
+    Sub.batch
+        [ AnimationFrame.diffs <span class="dt">TimeUpdate</span>
+        , Keyboard.downs <span class="dt">KeyDown</span>
+        , Keyboard.ups <span class="dt">KeyUp</span>
+        ]</code></pre></div>
+<p>This again will just return a subscription, or a <code>Sub Msg</code>. It doesn’t do anything on its own, but we need it for the actual wiring part of our code:</p>
+<div class="sourceCode"><pre class="sourceCode haskell"><code class="sourceCode haskell">main <span class="fu">=</span>
+    Html.program
+        { init <span class="fu">=</span> init
+        , view <span class="fu">=</span> view
+        , update <span class="fu">=</span> update
+        , subscriptions <span class="fu">=</span> subscriptions
+        }</code></pre></div>
+<p>If you are really paying attention, you might notice that we have <code>view</code> and <code>subscriptions</code> done by now, but both <code>init</code> and <code>update</code> are still missing. Luckily we already have all the building blocks, so taking this home shouldn’t be too much of a stretch anymore! In fact, <code>init</code> is so simple that we should get it out of the way right now.</p>
+<div class="sourceCode"><pre class="sourceCode haskell"><code class="sourceCode haskell">init <span class="fu">:</span> ( <span class="dt">Model</span>, <span class="dt">Cmd</span> <span class="dt">Msg</span> )
+init <span class="fu">=</span>
+    ( model, Cmd.none )</code></pre></div>
+<p>That’s all there is to it! Again, we can leave the <code>Cmd</code> stuff for later, but just as a primer: commands are the only way to have effects in an Elm program. What are effects? They are anything that can affect the world outside the app (such as posting something to the Internet), or whose value can vary between program runs (such as the current time, or random numbers). Here we don’t need to do any commands, so we define it to be <code>none</code>.</p>
+<h2 id="putting-it-all-together-the-update">Putting it all together: the update</h2>
+<p>All right, now’s the time to make it all work!</p>
+<p>Let’s begin from the high level. The <code>update</code> function takes the incoming message and the old model, and returns the updated model along with possible commands. In this case we won’t need any commands, but we still need to fulfill the contract with <code>none</code>s.</p>
+<div class="sourceCode"><pre class="sourceCode haskell"><code class="sourceCode haskell">update <span class="fu">:</span> <span class="dt">Msg</span> <span class="ot">-&gt;</span> <span class="dt">Model</span> <span class="ot">-&gt;</span> ( <span class="dt">Model</span>, <span class="dt">Cmd</span> <span class="dt">Msg</span> )
+update msg model <span class="fu">=</span>
+    <span class="kw">case</span> msg <span class="kw">of</span>
+        <span class="dt">TimeUpdate</span> dt <span class="ot">-&gt;</span>
+            ( applyPhysics dt model, Cmd.none )
+
+        <span class="dt">KeyDown</span> keyCode <span class="ot">-&gt;</span>
+            ( keyDown keyCode model, Cmd.none )
+
+        <span class="dt">KeyUp</span> keyCode <span class="ot">-&gt;</span>
+            ( keyUp keyCode model, Cmd.none )</code></pre></div>
+<p>Note that each of the possible <code>Msg</code> options is handled. If they weren’t, the Elm compiler would catch the problem, which is pretty cool and impressive. Anyway, the <code>TimeUpdate</code> is nice and easy. We can simply use the <code>applyPhysics</code> function to get the updated model. For the keypressing cases, I decided to split the handling into their own functions as well.</p>
+<p>When it comes to the packages, Elm 0.17 is still a bit of a work in progress. So to make the keyboard handling a little nicer, I made a tiny helper module. There is a function that can turn a <code>KeyCode</code> into a <code>Key</code>, which is a simple union type. It only has the keys we need for this exercise now, but could easily be extended.</p>
+<div class="sourceCode"><pre class="sourceCode haskell"><code class="sourceCode haskell">keyDown <span class="fu">:</span> <span class="dt">KeyCode</span> <span class="ot">-&gt;</span> <span class="dt">Model</span> <span class="ot">-&gt;</span> <span class="dt">Model</span>
+keyDown keyCode model <span class="fu">=</span>
+    <span class="kw">case</span> Key.fromCode keyCode <span class="kw">of</span>
+        <span class="dt">Space</span> <span class="ot">-&gt;</span>
+            incrementShotsFired model
+
+        <span class="dt">ArrowLeft</span> <span class="ot">-&gt;</span>
+            updateVelocity <span class="fu">-</span><span class="fl">1.0</span> model
+
+        <span class="dt">ArrowRight</span> <span class="ot">-&gt;</span>
+            updateVelocity <span class="fl">1.0</span> model
+
+        _ <span class="ot">-&gt;</span>
+            model</code></pre></div>
+<p>The above should be pretty clear. Spacebar shoots once as soon as it is pressed down and doesn’t do anything else. The arrow keys set the velocity of the ship when pressed down. Notice that we need an “otherwise” case, customarily denoted as <code>_</code>. This is because there are many other possible keys on the keyboard besides the ones we’ve covered.</p>
+<p>How about the release part?</p>
+<div class="sourceCode"><pre class="sourceCode haskell"><code class="sourceCode haskell">keyUp <span class="fu">:</span> <span class="dt">KeyCode</span> <span class="ot">-&gt;</span> <span class="dt">Model</span> <span class="ot">-&gt;</span> <span class="dt">Model</span>
+keyUp keyCode model <span class="fu">=</span>
+    <span class="kw">case</span> Key.fromCode keyCode <span class="kw">of</span>
+        <span class="dt">ArrowLeft</span> <span class="ot">-&gt;</span>
+            updateVelocity <span class="dv">0</span> model
+
+        <span class="dt">ArrowRight</span> <span class="ot">-&gt;</span>
+            updateVelocity <span class="dv">0</span> model
+
+        _ <span class="ot">-&gt;</span>
+            model</code></pre></div>
+<p>If the released key happened to be one of the movement keys, reset the velocity to 0, otherwise let’s just keep the current model. Pretty straightforward, right?</p>
+<p>Now it should work!</p>
+<h2 id="the-code">The code</h2>
+<p>Below is the full code, imports and all. You can also find the code on <a href="https://github.com/ohanhi/elm-game-base">GitHub</a>, along with some setup instructions.</p>
+<p><strong>Game.elm</strong></p>
+<div class="sourceCode"><pre class="sourceCode haskell"><code class="sourceCode haskell"><span class="kw">module</span> <span class="dt">Game</span> exposing (<span class="fu">..</span>)
+
+<span class="kw">import </span><span class="dt">Html</span> exposing (<span class="dt">Html</span>, text)
+<span class="kw">import </span><span class="dt">Html.App</span> <span class="kw">as</span> <span class="dt">Html</span>
+<span class="kw">import </span><span class="dt">Keyboard</span> exposing (<span class="dt">KeyCode</span>)
+<span class="kw">import </span><span class="dt">AnimationFrame</span>
+<span class="kw">import </span><span class="dt">Time</span> exposing (<span class="dt">Time</span>)
+<span class="kw">import </span><span class="dt">Key</span> exposing (..)
+
+
+main <span class="fu">=</span>
+    Html.program
+        { init <span class="fu">=</span> init
+        , view <span class="fu">=</span> view
+        , update <span class="fu">=</span> update
+        , subscriptions <span class="fu">=</span> subscriptions
+        }
+
+
+
+<span class="co">-- MODEL</span>
+
+
+<span class="kw">type</span> alias <span class="dt">Model</span> <span class="fu">=</span>
+    { velocity <span class="fu">:</span> <span class="dt">Float</span>
+    , position <span class="fu">:</span> <span class="dt">Float</span>
+    , shotsFired <span class="fu">:</span> <span class="dt">Int</span>
+    }
+
+
+model <span class="fu">:</span> <span class="dt">Model</span>
+model <span class="fu">=</span>
+    { velocity <span class="fu">=</span> <span class="dv">0</span>
+    , position <span class="fu">=</span> <span class="dv">0</span>
+    , shotsFired <span class="fu">=</span> <span class="dv">0</span>
+    }
+
+
+init <span class="fu">:</span> ( <span class="dt">Model</span>, <span class="dt">Cmd</span> <span class="dt">Msg</span> )
+init <span class="fu">=</span>
+    ( model, Cmd.none )
+
+
+
+<span class="co">-- UPDATE</span>
+
+
+<span class="kw">type</span> <span class="dt">Msg</span>
+    <span class="fu">=</span> <span class="dt">TimeUpdate</span> <span class="dt">Time</span>
+    <span class="fu">|</span> <span class="dt">KeyDown</span> <span class="dt">KeyCode</span>
+    <span class="fu">|</span> <span class="dt">KeyUp</span> <span class="dt">KeyCode</span>
+
+
+update <span class="fu">:</span> <span class="dt">Msg</span> <span class="ot">-&gt;</span> <span class="dt">Model</span> <span class="ot">-&gt;</span> ( <span class="dt">Model</span>, <span class="dt">Cmd</span> <span class="dt">Msg</span> )
+update msg model <span class="fu">=</span>
+    <span class="kw">case</span> msg <span class="kw">of</span>
+        <span class="dt">TimeUpdate</span> dt <span class="ot">-&gt;</span>
+            ( applyPhysics dt model, Cmd.none )
+
+        <span class="dt">KeyDown</span> keyCode <span class="ot">-&gt;</span>
+            ( keyDown keyCode model, Cmd.none )
+
+        <span class="dt">KeyUp</span> keyCode <span class="ot">-&gt;</span>
+            ( keyUp keyCode model, Cmd.none )
+
+
+keyDown <span class="fu">:</span> <span class="dt">KeyCode</span> <span class="ot">-&gt;</span> <span class="dt">Model</span> <span class="ot">-&gt;</span> <span class="dt">Model</span>
+keyDown keyCode model <span class="fu">=</span>
+    <span class="kw">case</span> Key.fromCode keyCode <span class="kw">of</span>
+        <span class="dt">Space</span> <span class="ot">-&gt;</span>
+            incrementShotsFired model
+
+        <span class="dt">ArrowLeft</span> <span class="ot">-&gt;</span>
+            updateVelocity <span class="fu">-</span><span class="fl">1.0</span> model
+
+        <span class="dt">ArrowRight</span> <span class="ot">-&gt;</span>
+            updateVelocity <span class="fl">1.0</span> model
+
+        _ <span class="ot">-&gt;</span>
+            model
+
+
+keyUp <span class="fu">:</span> <span class="dt">KeyCode</span> <span class="ot">-&gt;</span> <span class="dt">Model</span> <span class="ot">-&gt;</span> <span class="dt">Model</span>
+keyUp keyCode model <span class="fu">=</span>
+    <span class="kw">case</span> Key.fromCode keyCode <span class="kw">of</span>
+        <span class="dt">ArrowLeft</span> <span class="ot">-&gt;</span>
+            updateVelocity <span class="dv">0</span> model
+
+        <span class="dt">ArrowRight</span> <span class="ot">-&gt;</span>
+            updateVelocity <span class="dv">0</span> model
+
+        _ <span class="ot">-&gt;</span>
+            model
+
+
+applyPhysics <span class="fu">:</span> <span class="dt">Float</span> <span class="ot">-&gt;</span> <span class="dt">Model</span> <span class="ot">-&gt;</span> <span class="dt">Model</span>
+applyPhysics dt model <span class="fu">=</span>
+    { model <span class="fu">|</span> position <span class="fu">=</span> model<span class="fu">.</span>position <span class="fu">+</span> model<span class="fu">.</span>velocity <span class="fu">*</span> dt }
+
+
+updateVelocity <span class="fu">:</span> <span class="dt">Float</span> <span class="ot">-&gt;</span> <span class="dt">Model</span> <span class="ot">-&gt;</span> <span class="dt">Model</span>
+updateVelocity newVelocity model <span class="fu">=</span>
+    { model <span class="fu">|</span> velocity <span class="fu">=</span> newVelocity }
+
+
+incrementShotsFired <span class="fu">:</span> <span class="dt">Model</span> <span class="ot">-&gt;</span> <span class="dt">Model</span>
+incrementShotsFired model <span class="fu">=</span>
+    { model <span class="fu">|</span> shotsFired <span class="fu">=</span> model<span class="fu">.</span>shotsFired <span class="fu">+</span> <span class="dv">1</span> }
+
+
+
+<span class="co">-- VIEW</span>
+
+
+view <span class="fu">:</span> <span class="dt">Model</span> <span class="ot">-&gt;</span> <span class="dt">Html</span> msg
+view model <span class="fu">=</span>
+    text (toString model)
+
+
+
+<span class="co">-- SUBSCRIPTIONS</span>
+
+
+subscriptions <span class="fu">:</span> <span class="dt">Model</span> <span class="ot">-&gt;</span> <span class="dt">Sub</span> <span class="dt">Msg</span>
+subscriptions model <span class="fu">=</span>
+    Sub.batch
+        [ AnimationFrame.diffs <span class="dt">TimeUpdate</span>
+        , Keyboard.downs <span class="dt">KeyDown</span>
+        , Keyboard.ups <span class="dt">KeyUp</span>
+        ]</code></pre></div>
+<p><strong>Key.elm</strong></p>
+<div class="sourceCode"><pre class="sourceCode haskell"><code class="sourceCode haskell"><span class="kw">module</span> <span class="dt">Key</span> exposing (<span class="fu">..</span>)
+
+
+<span class="kw">type</span> <span class="dt">Key</span>
+    <span class="fu">=</span> <span class="dt">Space</span>
+    <span class="fu">|</span> <span class="dt">ArrowLeft</span>
+    <span class="fu">|</span> <span class="dt">ArrowRight</span>
+    <span class="fu">|</span> <span class="dt">Unknown</span>
+
+
+fromCode <span class="fu">:</span> <span class="dt">Int</span> <span class="ot">-&gt;</span> <span class="dt">Key</span>
+fromCode keyCode <span class="fu">=</span>
+    <span class="kw">case</span> keyCode <span class="kw">of</span>
+        <span class="dv">32</span> <span class="ot">-&gt;</span>
+            <span class="dt">Space</span>
+
+        <span class="dv">37</span> <span class="ot">-&gt;</span>
+            <span class="dt">ArrowLeft</span>
+
+        <span class="dv">39</span> <span class="ot">-&gt;</span>
+            <span class="dt">ArrowRight</span>
+
+        _ <span class="ot">-&gt;</span>
+            <span class="dt">Unknown</span></code></pre></div>
+<p><strong>elm-package.json</strong></p>
+<div class="sourceCode"><pre class="sourceCode json"><code class="sourceCode json"><span class="fu">{</span>
+    <span class="dt">&quot;version&quot;</span><span class="fu">:</span> <span class="st">&quot;1.0.0&quot;</span><span class="fu">,</span>
+    <span class="dt">&quot;summary&quot;</span><span class="fu">:</span> <span class="st">&quot;Example base for a game in Elm 0.17&quot;</span><span class="fu">,</span>
+    <span class="dt">&quot;repository&quot;</span><span class="fu">:</span> <span class="st">&quot;https://github.com/ohanhi/elm-game-base.git&quot;</span><span class="fu">,</span>
+    <span class="dt">&quot;license&quot;</span><span class="fu">:</span> <span class="st">&quot;BSD3&quot;</span><span class="fu">,</span>
+    <span class="dt">&quot;source-directories&quot;</span><span class="fu">:</span> <span class="ot">[</span>
+        <span class="st">&quot;.&quot;</span>
+    <span class="ot">]</span><span class="fu">,</span>
+    <span class="dt">&quot;exposed-modules&quot;</span><span class="fu">:</span> <span class="ot">[]</span><span class="fu">,</span>
+    <span class="dt">&quot;dependencies&quot;</span><span class="fu">:</span> <span class="fu">{</span>
+        <span class="dt">&quot;elm-lang/animation-frame&quot;</span><span class="fu">:</span> <span class="st">&quot;1.0.0 &lt;= v &lt; 2.0.0&quot;</span><span class="fu">,</span>
+        <span class="dt">&quot;elm-lang/core&quot;</span><span class="fu">:</span> <span class="st">&quot;4.0.0 &lt;= v &lt; 5.0.0&quot;</span><span class="fu">,</span>
+        <span class="dt">&quot;elm-lang/html&quot;</span><span class="fu">:</span> <span class="st">&quot;1.0.0 &lt;= v &lt; 2.0.0&quot;</span><span class="fu">,</span>
+        <span class="dt">&quot;elm-lang/keyboard&quot;</span><span class="fu">:</span> <span class="st">&quot;1.0.0 &lt;= v &lt; 2.0.0&quot;</span>
+    <span class="fu">},</span>
+    <span class="dt">&quot;elm-version&quot;</span><span class="fu">:</span> <span class="st">&quot;0.17.0 &lt;= v &lt; 0.18.0&quot;</span>
+<span class="fu">}</span></code></pre></div>]]></summary>
+</entry>
+<entry>
+    <title>The future of Elm + React Native</title>
+    <link href="http://ohanhi.com/elm-native-ui-update.html" />
+    <id>http://ohanhi.com/elm-native-ui-update.html</id>
+    <published>2016-03-21T00:00:00Z</published>
+    <updated>2016-03-21T00:00:00Z</updated>
+    <summary type="html"><![CDATA[<header class="post-header">
+  
+  <h3>Elm Native UI</h3>
+  
+  <h1 class="post-title">The future of Elm + React Native</h1>
+  
+</header>
+<div class="post-meta">
+  <img class="profile-pic" src="/img/profile_tiny.jpg" alt="">
+  <h3 class="author">
+    <span>Ossi Hanhinen</span>
+    <a href="https://twitter.com/ohanhi">@ohanhi</a>
+  </h3>
+  <p class="post-date">March 21, 2016</p>
+</div>
+
+<hr>
+
+<h3>Read this to</h3>
+<ul class="post-reasons">
+  
+  <li>get an inside look into how Elm Native UI has evolved</li>
+  
+</ul>
+
+<h3>I expect you to know</h3>
+<ul class="post-prereqs">
+  
+  <li>what React Native is</li>
+  
+  <li>some Elm</li>
+  
+</ul>
+
+<hr> <p><em><a href="https://github.com/elm-native-ui/elm-native-ui">Elm Native UI</a> aims to let people build mobile apps in Elm using React Native.</em></p>
+<p><a href="https://github.com/elm-native-ui/elm-native-ui"><img src="/img/elm-native-dribbble.png" /></a> <small class="caption">Elm Native UI <a href="https://dribbble.com/shots/2383347-Elm-Native-logo">logo</a> by <a href="http://paulyoung.me/">Paul Young</a></small></p>
+<p>I wrote a <a href="/elm-native-ui.html">post</a> about <a href="https://github.com/elm-native-ui/elm-native-ui">Elm Native UI</a> a month ago. Since then, a lot has happened with the project. I had a chat with Evan Czaplicki on how things really should work. <a href="https://twitter.com/sefnap/">Yusef</a> and <a href="https://twitter.com/eeue56">Noah</a> helped move away from ports. I restructured the project to be less a proof-of-concept and more a library.</p>
+<p>This post gives an overview of the major changes made, and paints a picture of how I see the future at this point.</p>
+<h2 id="what-we-had-before">What we had before</h2>
+<p>A month ago we had an intricate setup that was using ports for outputting the UI and getting events from React Native. It worked, but there were many annoyances with the approach. Among other things, we had to encode the view into a signal of JSON.</p>
+<div class="sourceCode"><pre class="sourceCode haskell"><code class="sourceCode haskell"><span class="co">-- &quot;main&quot;</span>
+port viewTree <span class="fu">:</span> <span class="dt">Signal</span> <span class="dt">Json.Encode.Value</span></code></pre></div>
+<p><small class="caption">Ye olde JSON values. Meh.</small></p>
+<p>This meant that no event handlers could actually be tied into the elements. We had a workaround for that, but suffice to say it was not pretty.</p>
+<p>So shortly after I had published the blog post <a href="https://twitter.com/czaplic">Evan Czaplicki</a> messaged me saying he’d like to have a video call on Elm Native UI sometime and in short explained that what I’d done just seemed awfully complex and that there was definitely a better way.</p>
+<h2 id="from-ports-to-main">From ports to main</h2>
+<p>A few days later, I had the video call with Evan. (He’s such a nice guy, by the way!) We chatted for about an hour on everything related to the project, but our main focus was the <code>main</code>. I described the reasons we had had to go with ports and not the normal Elm application way of letting <code>main</code> output the view.</p>
+<p>Basically the thing is that <code>main</code> restricts the types that can pass through, because each allowed type needs to have specific support in the Elm runtime. Evan then went on to explain that supporting a new platform is something that can really get special help from the language. In fact, adding a new allowed type is actually very simple for him to do. He even showed me the parts of code I’d need to edit in order to make it work on my computer.</p>
+<p><img src="https://media.giphy.com/media/3o8doT9BL7dgtolp7O/giphy.gif" /> <small class="caption">My reaction to the things Evan said (courtesy of <a href="https://giphy.com/gifs/foxinternational-reaction-simpsons-carl-3o8doT9BL7dgtolp7O">Giphy</a>)</small></p>
+<p>While I was busy with work for a while, a helpful character by the name of Yusef Napora appeared. He single-handedly moved the project forward by <a href="https://github.com/elm-native-ui/elm-native-ui/pull/23">a major leap</a> simply because he was having fun!</p>
+<p>I had failed to communicate the things I had discussed with Evan in the project readme so Yusef’s solution was based on making the compiler think the application is outputting <code>Html</code>. In reality it was using a monkey-patched virtual-dom package that could output the virtual tree for React Native to pick up. While an admirable feat of engineering and all in all a neat trick, this was not the <em>correct</em> way of doing things.</p>
+<blockquote class="twitter-tweet" data-cards="hidden" data-lang="en">
+<p lang="en" dir="ltr">
+Hacking on <a href="https://twitter.com/elmlang"><span class="citation">@elmlang</span></a> and <a href="https://twitter.com/hashtag/reactnative?src=hash">#reactnative</a> is so much fun! Made the “random gif” from the elm architecture work last nite <a href="https://t.co/30C6aNAD34">pic.twitter.com/30C6aNAD34</a>
+</p>
+— Yusef Napora (<span class="citation">@sefnap</span>) <a href="https://twitter.com/sefnap/status/707940592144273409">March 10, 2016</a>
+</blockquote>
+<script async src="//platform.twitter.com/widgets.js" charset="utf-8"></script>
+<p>Meanwhile, I met Noah (a NoRedInk employee and an Elm contributor) while I was on a talking gig in Stockholm. I told him what me and Evan had talked in the video call, and that I hadn’t yet had the time to make the changes for the compiler and core necessary to make it happen. The next week he had took up on the challenge and <a href="https://github.com/elm-native-ui/elm-native-ui/pull/24">created the base</a> for our ideal future — first-class support for the React Native virtual tree at the language level.</p>
+<p>Both of these things, the refactoring and new features Yusef had done, and the compiler modifications Noah made, eventually came together in the <a href="https://github.com/elm-native-ui/elm-native-ui/pull/25">great PR to change the future</a> of the project. After some discussion, I merged all of that stuff into <code>master</code>, effectively severing the continuity with older versions of Elm Native UI. From this moment on, the project would not compile with the official <code>elm-compiler</code>. On the other hand, the new version was on track with what Evan and I thought best, and the view functions were now aligned with how <code>elm-html</code> works.</p>
+<h2 id="from-the-proof-of-concept-project-to-an-installable-package">From the proof-of-concept project to an installable package</h2>
+<p>Yesterday I decided I would completely rethink the project structure. From the beginning, the Elm Native UI repository had been a React Native project with all the files that go with such a thing. This made sense when the goal was simply to make some kind of a proof-of-concept work. With the recent advances, Elm Native UI was finally looking worth being a library rather than just something to tinker with.</p>
+<p>As depicted in the earlier post, the grand picture of how Elm Native UI should work is the following: “the Elm application is the only thing a developer needs to work on. React Native works as a ‘backend’ of sorts, relaying messages to and from the native app side to the Elm side.”</p>
+<p><img src="/img/rn-elm-2.png" /> <small class="caption">How Elm Native UI ought to work</small></p>
+<p>To make this happen, I made some <a href="https://github.com/elm-native-ui/elm-native-ui/pull/26">fundamental changes</a>.</p>
+<ul>
+<li>Moved all relevant package files to <code>./src</code></li>
+<li>Moved usage example files to <code>./examples</code></li>
+<li>Removed the React Native generated <code>android</code> and <code>ios</code> directories altogether</li>
+<li>Renamed a bunch of stuff to be more intuitive for the end user</li>
+</ul>
+<p>In particular I renamed the module, and the outputted type, to <code>NativeUi</code>. This should make much more sense to people used to the way elm-html works:</p>
+<div class="sourceCode"><pre class="sourceCode haskell"><code class="sourceCode haskell"><span class="co">-- using elm-html</span>
+main <span class="fu">:</span> <span class="dt">Signal</span> <span class="dt">Html</span>
+
+<span class="co">-- and using elm-native-ui</span>
+main <span class="fu">:</span> <span class="dt">Signal</span> <span class="dt">NativeUi</span></code></pre></div>
+<p>I also forked and modified the <a href="https://github.com/elm-native-ui/elm-compiler">compiler</a> and <a href="https://github.com/elm-native-ui/core">core</a> to match these changes, and uploaded a pre-built version of the modified compiler so that not all people need to build it themselves to use Elm Native UI.</p>
+<p>The coolest part of all this is that using the <a href="https://github.com/NoRedInk/elm-ops-tooling#elm_self_publish">self-publishing script</a> by Noah, people can now actually use Elm Native UI as a normal Elm package! You can init a React Native project of your own, then install the packages and start working on a mobile app in Elm. All the steps needed to start your own Elm Native UI project are documented in detail in the <a href="https://github.com/elm-native-ui/elm-native-ui#get-it-running">Get it running</a> section of the readme.</p>
+<h2 id="whats-left-to-do">What’s left to do</h2>
+<p>Apart from getting the official compiler and core to support NativeUi, there are a few other things to sort out still. Navigation is still an <a href="https://github.com/elm-native-ui/elm-native-ui/issues/11">open issue</a>, and there are some unchecked things in the <a href="https://github.com/elm-native-ui/elm-native-ui#to-do">To do</a>, among other things.</p>
+<p>More than that though, I can’t really say if/when Elm Native UI could be published into <a href="http://package.elm-lang.org/">package.elm-lang.org</a>. Due to the <a href="https://facebook.github.io/react/blog/2015/05/22/react-native-release-process.html">volatile nature</a> of React Native itself, the published package would be very difficult to keep up to date and as high quality as expected from anything in the Elm package catalogue. For now, I think the best we can do is to wait and see how React Native evolves. Maybe in six months or a year, things will be more stable.</p>]]></summary>
+</entry>
+<entry>
+    <title>Why Elm</title>
+    <link href="http://ohanhi.com/master-elm-1-why-elm.html" />
+    <id>http://ohanhi.com/master-elm-1-why-elm.html</id>
+    <published>2016-03-02T00:00:00Z</published>
+    <updated>2016-03-02T00:00:00Z</updated>
+    <summary type="html"><![CDATA[<header class="post-header">
+  
+  <h3>Master Elm pt. 1</h3>
+  
+  <h1 class="post-title">Why Elm</h1>
+  
+</header>
+<div class="post-meta">
+  <img class="profile-pic" src="/img/profile_tiny.jpg" alt="">
+  <h3 class="author">
+    <span>Ossi Hanhinen</span>
+    <a href="https://twitter.com/ohanhi">@ohanhi</a>
+  </h3>
+  <p class="post-date">March 2, 2016</p>
+</div>
+
+<hr>
+
+<h3>Read this to</h3>
+<ul class="post-reasons">
+  
+  <li>know what "Elm" is in layman's terms</li>
+  
+  <li>understand what _confidence_ in programming means</li>
+  
+  <li>get a feel of how Elm makes you confident</li>
+  
+</ul>
+
+<h3>I expect you to know</h3>
+<ul class="post-prereqs">
+  
+  <li>some JavaScript</li>
+  
+</ul>
+
+<hr> <h2 id="the-case-for-elm">The case for Elm</h2>
+<p>Elm is a language for building web frontend. It compiles to JavaScript so that it runs in the browser. What sets it apart from most other “to-javascript” languages is that it really doesn’t replicate or try to mend the intricacies of JavaScript. Elm is a language and ecosystem of its own, and it just happens to compile to JavaScript.</p>
+<p>It is very common nowadays to write code that is translated into JavaScript the most used browsers can understand. ES6 and JSX are some of the most popular ones, but there’s a multitude of others including CoffeeScript, ClojureScript and TypeScript.</p>
+<p>Why should you learn Elm then? There are many reasons, such as learning to really think in the <em>functional mindset</em> and seeing how helpful a compiler can in reality be. If you have any JavaScript experience, you probably recognize the phrases “Uncaught ReferenceError: foo is not defined” and “Uncaught TypeError: bar.quux is not a function”. This will never happen with Elm. Because of the language design, there are no runtime exceptions. Below is a list of key benefits in my opinion.</p>
+<h2 id="benefits-of-using-elm-instead-of-plain-javascript">Benefits of using Elm instead of plain JavaScript</h2>
+<ul>
+<li><strong>Strong static types</strong><br> Find errors fast with readable compiler messages.</li>
+<li><strong>No <code>null</code> or <code>undefined</code></strong><br> Never miss a potential problem.</li>
+<li><strong>Total immutability</strong><br> Focus on what you are writing right now without worrying about outer state.</li>
+<li><strong>Purely functional</strong><br> Leads to decoupled and easily refactorable code.</li>
+<li><strong>No runtime exceptions</strong><br> Gives incomparable reliability.</li>
+<li><strong>Reactive by design</strong><br> FRP isn’t opt-in, it is baked right in the language.</li>
+</ul>
+<p>Don’t worry if you don’t know what all of this means, I’ll be covering all of these subjects in later posts.</p>
+<h2 id="confidence-in-programming">Confidence in programming</h2>
+<p>Confidence is a tricky subject. Talking about it very easily comes off as purely subjective. A state of mind, so to say. What I am trying to convey here though is something objective — how much of programming is about <em>remembering</em> to do things and handle error cases.</p>
+<p>I am a simple man. I can’t handle an entire codebase in my head. In JavaScript and many other languages this means I need to write tests for trivial things to make sure future me is covered.</p>
+I am talking about this:
+<blockquote class="twitter-tweet" data-lang="en">
+<p lang="en" dir="ltr">
+Me writing Haskell: 30% test coverage. Scala: 60% test coverage. Ruby: 97% test coverage. Guess the order of reliability of code..
+</p>
+— Wille (<span class="citation">@wfaler</span>) <a href="https://twitter.com/wfaler/status/704807786660687874">March 1, 2016</a>
+</blockquote>
+<script async src="//platform.twitter.com/widgets.js" charset="utf-8"></script>
+<p>Elm is right up there with Haskell in terms of reliability. The strictness of the type system eliminates an enormous amount — if not <em>the vast majority of</em> — mundane errors. Furthermore, refactoring is incredibly nice. Daniel Bachler had a relatable talk in BerlinJS not long ago: <a href="http://slides.com/danielbachler/fearless-refactoring-with-elm#/">Fearless refactoring with Elm</a>. The refactoring experience most of the time is:</p>
+<ol style="list-style-type: decimal">
+<li>Make changes, any changes.</li>
+<li>The compiler tells what you missed.</li>
+<li>Go to 1.</li>
+</ol>
+<p>When the code compiles, it will work. There will not be any crashes. The only things that can go wrong are application logic. Application logic is what we should be focused on at all times, but many languages don’t let us do that. And since Elm enforces immutability and functional style, it is in fact very hard to cause regressions that you don’t know about.</p>
+<p>I find that when coding Elm, I get to spend most of my time thinking about the actual problem that I am solving. Whereas when coding JavaScript, I spend my time debugging and only every once in a while get to think about the actual problem.</p>]]></summary>
+</entry>
+<entry>
+    <title>Writing a React Native app in Elm</title>
+    <link href="http://ohanhi.com/elm-native-ui.html" />
+    <id>http://ohanhi.com/elm-native-ui.html</id>
+    <published>2016-02-23T00:00:00Z</published>
+    <updated>2016-02-23T00:00:00Z</updated>
+    <summary type="html"><![CDATA[<header class="post-header">
+  
+  <h3>Elm Native UI</h3>
+  
+  <h1 class="post-title">Writing a React Native app in Elm</h1>
+  
+</header>
+<div class="post-meta">
+  <img class="profile-pic" src="/img/profile_tiny.jpg" alt="">
+  <h3 class="author">
+    <span>Ossi Hanhinen</span>
+    <a href="https://twitter.com/ohanhi">@ohanhi</a>
+  </h3>
+  <p class="post-date">February 23, 2016</p>
+</div>
+
+<hr>
+
+<h3>Read this to</h3>
+<ul class="post-reasons">
+  
+  <li>get an inside look into how Elm Native UI was made</li>
+  
+</ul>
+
+<h3>I expect you to know</h3>
+<ul class="post-prereqs">
+  
+  <li>what React Native is</li>
+  
+  <li>some Elm</li>
+  
+</ul>
+
+<hr> <p>We were at the <a href="https://reactive2015.com/">Reactive 2015</a> conference in Bratislava in November. A lot of people I talked with were interested in Elm, and many asked whether it could be used with a) Node and b) React Native. I knew there was progress on the Node front, but at least <a href="https://twitter.com/rtfeldman">Richard Feldman</a> hadn’t heard anything about React Native being experimented with.</p>
+<p>Me and <a href="http://staltz.com/">André</a> wanted to prove it was possible to write a React Native app using Elm. A weekend of hacking lead to <a href="https://github.com/elm-native-ui/elm-native-ui">Elm Native UI</a> being born.</p>
+<p><a href="https://github.com/elm-native-ui/elm-native-ui"><img src="/img/elm-native-dribbble.png" /></a> <small class="caption">Elm Native UI <a href="https://dribbble.com/shots/2383347-Elm-Native-logo">logo</a> by <a href="http://paulyoung.me/">Paul Young</a></small></p>
+<h2 id="what-we-wanted-to-achieve">What we wanted to achieve</h2>
+<p>We wanted to start with something that would be simple enough, but would have at least some of the characteristics of a real application. From the Elm application, we need to output a tree representing React Native components (<code>View</code> and <code>Text</code>). From the React Native side, we need to send events that the Elm app wants to listen to.</p>
+<p>In the end, we opted for the traditional example of increment and decrement buttons and a counter to display the current value. This would demonstrate that both of the vital parts, the output and the input, work as intended.</p>
+<div class="figure">
+<img src="/img/rn-elm-2.png" />
+
+</div>
+<p>This diagram shows how the whole thing works. Ideally, the Elm application is the only thing a developer needs to work on. React Native works as a “backend” of sorts, relaying messages to and from the native app side to the Elm side.</p>
+<h2 id="overcoming-the-elm-border-control">Overcoming the Elm border control</h2>
+<p>Elm’s <code>main</code> function is special in that it only allows a handful of types, namely <code>Element</code>, <code>Html</code>, or a signal of either. This means we can’t easily have the Elm application produce a component tree (like the virtual DOM) for React Native to pick up as the rendered component tree. Unless we use <a href="http://elm-lang.org/guide/interop#ports">ports</a>, of course.</p>
+<p>If you’ve worked with ports before, you may know that they have a predefined set of <a href="http://elm-lang.org/guide/interop#customs-and-border-protection">allowed types</a> themselves. The listing mentions Records as one of the allowed types, so my first intuition was to create a self-referential type for the VTree. A <code>Node</code> can have a list of <code>Node</code>s for children. Sadly, this is forbidden in Elm. Records need to have finite boundaries, and a tree structure is obviously not finite. So instead, I created a tree structure as a union type:</p>
+<div class="sourceCode"><pre class="sourceCode haskell"><code class="sourceCode haskell"><span class="kw">type</span> <span class="dt">VTree</span>
+  <span class="fu">=</span> <span class="dt">VNode</span> <span class="dt">String</span> (<span class="dt">List</span> <span class="dt">RnStyle.Style</span>) (<span class="dt">List</span> <span class="dt">VTree</span>)
+  <span class="fu">|</span> <span class="dt">VText</span> (<span class="dt">List</span> <span class="dt">RnStyle.Style</span>) (<span class="dt">String</span>, <span class="dt">EventHandlerRef</span>) <span class="dt">String</span></code></pre></div>
+<p>To pass the thing to the React Native side, we decided to go with plain JSON values, since they exhibit all the qualities we needed and are allowed through ports:</p>
+<div class="sourceCode"><pre class="sourceCode haskell"><code class="sourceCode haskell"><span class="co">-- &quot;main&quot;</span>
+port viewTree <span class="fu">:</span> <span class="dt">Signal</span> <span class="dt">Json.Encode.Value</span>
+port viewTree <span class="fu">=</span>
+  NativeApp.start { model <span class="fu">=</span> model, view <span class="fu">=</span> view, update <span class="fu">=</span> update, init <span class="fu">=</span> init }</code></pre></div>
+<p><strong>Note:</strong> Evan Czaplicki, the creator of Elm, contacted me after this post was first published. He said “Supporting a new platform is something that can get special help from the language”, so I am hopeful this will become even nicer in the future!</p>
+<h2 id="ping-back">Ping back</h2>
+<p>The second big challenge was user interaction. An application ain’t much if it cannot react to any user input, after all. In elm-html you set up bindings in the view like so:</p>
+<div class="sourceCode"><pre class="sourceCode haskell"><code class="sourceCode haskell">Html.button
+  [ someAttribute
+  , Html.Events.onClick address
+  ]
+  [ Html.text <span class="st">&quot;Click me!&quot;</span> ]</code></pre></div>
+<p>We figured we should try and reproduce a somewhat similar API, but couldn’t quite get there. We have:</p>
+<div class="sourceCode"><pre class="sourceCode haskell"><code class="sourceCode haskell">RN.text
+  [ someAttribute ]
+  (RN.onPress address action)
+  <span class="st">&quot;Press me!&quot;</span></code></pre></div>
+<p>The reason why the event handler is separate from other attributes is that the elm-html <code>Attribute</code> is a Virtual DOM JavaScript property under the hood. Our attributes are (for now) simply styles, as you could see from the type definition:</p>
+<div class="sourceCode"><pre class="sourceCode haskell"><code class="sourceCode haskell"><span class="kw">type</span> <span class="dt">VTree</span>
+  <span class="fu">=</span> <span class="dt">VNode</span> <span class="dt">String</span> (<span class="dt">List</span> <span class="dt">RnStyle.Style</span>) (<span class="dt">List</span> <span class="dt">VTree</span>)
+  <span class="fu">|</span> <span class="dt">VText</span> (<span class="dt">List</span> <span class="dt">RnStyle.Style</span>) (<span class="dt">String</span>, <span class="dt">EventHandlerRef</span>) <span class="dt">String</span></code></pre></div>
+<p>Also, since the React Native <code>Text</code> component only allows a single text child, we reflect that in the API.</p>
+<p>To bridge the gap between the Elm generated VTree and React Native, there are two things at play:</p>
+<ol style="list-style-type: decimal">
+<li>a React Native <a href="https://github.com/elm-native-ui/elm-native-ui/blob/master/index.ios.js">app</a> that initializes the Elm app with <code>Elm.worker</code> and subscribes to its <code>vtreeOutput</code> port, and<br></li>
+<li>an “Elm Native” <a href="https://github.com/elm-native-ui/elm-native-ui/blob/master/ReactNative/Native/ReactNative.js">JS module</a> that sets up the listeners for the Elm runtime.</li>
+</ol>
+<p>Now the “Elm Native” is something you would generally try to avoid when coding Elm, since there are no guarantees of safety. Also, the way they work is supposed to change in the very near future. But just to clear it up, from the Elm point of view, <em>native</em> refers to JavaScript, which is what the Elm runtime runs on. From the React Native point of view however, <em>native</em> is the Objective-C/Java code that runs on a mobile device. This naming thing is also the reason the project is called <strong>Elm Native UI</strong> and not simply Elm Native.</p>
+<p>How the event listeners work under the hood is a bit funky at the moment. The Elm Native module utilizes handler IDs to keep track of them and pass events to the Elm runtime. That is why the <code>on</code> function returns an <code>EventHandlerRef</code>, which is essentially an integer.</p>
+<div class="sourceCode"><pre class="sourceCode haskell"><code class="sourceCode haskell">on <span class="fu">:</span> <span class="dt">Json.Decode.Decoder</span> a <span class="ot">-&gt;</span> (a <span class="ot">-&gt;</span> <span class="dt">Signal.Message</span>) <span class="ot">-&gt;</span> <span class="dt">EventHandlerRef</span>
+on decoder toMessage <span class="fu">=</span>
+    Native.ReactNative.on decoder toMessage</code></pre></div>
+<p>We are looking to improve this in the future.</p>
+<h2 id="did-it-work-out">Did it work out?</h2>
+<p>Yes it did. There are still big things to overcome, such as the <a href="https://facebook.github.io/react-native/docs/navigator.html#content">Navigator</a> (though that should change soon) and event handler thing. But all in all it feels like Elm Native UI could actually be a thing somewhere down the line.</p>
+<p>A resounding thank you goes to all the <a href="https://github.com/elm-native-ui/elm-native-ui/graphs/contributors">contributors</a>!</p>
+<p>Here’s an internetsy representation of what we’ve accomplished thus far: a GIF.</p>
+<div class="figure">
+<img src="/img/elm-native-ui-capture.gif" />
+
+</div>
+<p>The repository is open source on GitHub: <a href="https://github.com/elm-native-ui/elm-native-ui/">Elm Native UI</a></p>
+<h2 id="whats-next">What’s next</h2>
+<p>I will write another post later on about the future of Elm Native UI. There are some interesting developments, as with <a href="https://github.com/facebook/react-native/releases/tag/v0.21.0-rc">React Native 0.21</a> the much more reactive NavigationExperimental is becoming a reality.</p>
+<p><strong>Closes <a href="https://github.com/elm-native-ui/elm-native-ui/issues/2">#2</a></strong></p>]]></summary>
+</entry>
+<entry>
+    <title>SSL on localhost with Phoenix Framework</title>
+    <link href="http://ohanhi.com/phoenix-ssl-localhost.html" />
+    <id>http://ohanhi.com/phoenix-ssl-localhost.html</id>
+    <published>2016-02-18T00:00:00Z</published>
+    <updated>2016-02-18T00:00:00Z</updated>
+    <summary type="html"><![CDATA[<header class="post-header">
+  
+  <h1 class="post-title">SSL on localhost with Phoenix Framework</h1>
+  
+</header>
+<div class="post-meta">
+  <img class="profile-pic" src="/img/profile_tiny.jpg" alt="">
+  <h3 class="author">
+    <span>Ossi Hanhinen</span>
+    <a href="https://twitter.com/ohanhi">@ohanhi</a>
+  </h3>
+  <p class="post-date">February 18, 2016</p>
+</div>
+
+<hr>
+
+<h3>Read this to</h3>
+<ul class="post-reasons">
+  
+  <li>learn how to set up SSL for localhost</li>
+  
+</ul>
+
+<h3>I expect you to know</h3>
+<ul class="post-prereqs">
+  
+  <li>Elixir and Phoenix</li>
+  
+</ul>
+
+<hr> <p>Sometimes when developing a backend, you want to use HTTPS even on localhost. I ran into this situation not long ago when I was building a mock service providing OAuth 2.0 authentication.</p>
+<p>Here’s how you can enable SSL on Elixir Phoenix in dev mode.</p>
+<h2 id="get-a-certificate">1. Get a certificate</h2>
+<p>For development purposes, you can generate a self-signed certificate with the following commands:</p>
+<div class="sourceCode"><pre class="sourceCode bash"><code class="sourceCode bash"><span class="co"># generate key</span>
+$ <span class="ex">openssl</span> genrsa -out localhost.key 2048
+<span class="co"># generate cert</span>
+$ <span class="ex">openssl</span> req -new -x509 -key localhost.key -out localhost.cert -days 3650 -subj /CN=localhost</code></pre></div>
+<p>You can of course also use <a href="https://letsencrypt.org/">Letsencrypt</a> for a free signed certificate.</p>
+<h2 id="copy-the-key-and-cert-into-your-project">2. Copy the key and cert into your project</h2>
+<p>Put them in a directory called <code>priv/keys/</code>.</p>
+<h2 id="set-up-the-config">3. Set up the config</h2>
+<p>In your <code>config/dev.exs</code> file:</p>
+<div class="sourceCode"><pre class="sourceCode elixir"><code class="sourceCode elixir">config <span class="va">:phoenix_oauth2_mock_server</span>, <span class="cn">PhoenixOauth2MockServer</span><span class="op">.</span><span class="cn">Endpoint</span>,
+  <span class="va">http:</span> [<span class="va">port:</span> <span class="dv">4000</span>],
+  <span class="va">https:</span> [<span class="va">port:</span> <span class="dv">4443</span>,
+          <span class="va">otp_app:</span> <span class="va">:phoenix_oauth2_mock_server</span>,
+          <span class="va">keyfile:</span> <span class="st">&quot;priv/keys/localhost.key&quot;</span>,
+          <span class="va">certfile:</span> <span class="st">&quot;priv/keys/localhost.cert&quot;</span>],
+  <span class="va">debug_errors:</span> <span class="cn">true</span>,
+  <span class="va">code_reloader:</span> <span class="cn">true</span>,
+  <span class="va">check_origin:</span> <span class="cn">false</span>,
+  <span class="va">watchers:</span> [<span class="va">node:</span> [<span class="st">&quot;node_modules/brunch/bin/brunch&quot;</span>, <span class="st">&quot;watch&quot;</span>, <span class="st">&quot;--stdin&quot;</span>]]</code></pre></div>
+<p><strong>Done!</strong></p>]]></summary>
+</entry>
+<entry>
+    <title>Learning FP the hard way</title>
+    <link href="http://ohanhi.com/learning-fp.html" />
+    <id>http://ohanhi.com/learning-fp.html</id>
+    <published>2015-06-10T00:00:00Z</published>
+    <updated>2015-06-10T00:00:00Z</updated>
+    <summary type="html"><![CDATA[<header class="post-header">
+  
+  <h1 class="post-title">Learning FP the hard way</h1>
+  
+  <h2>Experiences on the Elm language</h2>
+  
+</header>
+<div class="post-meta">
+  <img class="profile-pic" src="/img/profile_tiny.jpg" alt="">
+  <h3 class="author">
+    <span>Ossi Hanhinen</span>
+    <a href="https://twitter.com/ohanhi">@ohanhi</a>
+  </h3>
+  <p class="post-date">June 10, 2015</p>
+</div>
+
+<hr>
+
+<h3>Read this to</h3>
+<ul class="post-reasons">
+  
+  <li>get a gentle introduction to Elm and some of its core concepts</li>
+  
+</ul>
+
+<h3>I expect you to know</h3>
+<ul class="post-prereqs">
+  
+  <li>some JavaScript</li>
+  
+</ul>
+
+<hr> <p>Originally published as a <a href="https://gist.github.com/ohanhi/0d3d83cf3f0d7bbea9db">public Gist</a></p>
+<p>with the support of <a href="http://futurice.com/">Futurice</a>.</p>
+<p>Licensed under <a href="https://creativecommons.org/licenses/by/4.0/">CC BY 4.0</a>.</p>
+<h2 id="foreword">Foreword</h2>
+<p>A good friend of mine convinced me about the benefits of <a href="https://gist.github.com/staltz/868e7e9bc2a7b8c1f754"><em>Reactive Programming</em></a> not that long ago. It almost feels wrong not to write <em>Functional Reactive Programming</em> – apparently the functional methodology lends itself magnificently to complement reactive programming. How, I did not know. So I decided to learn this stuff.</p>
+<p>Knowing myself, I soon realized I would only ever get in the mindset if I had to solve some actual problems using the techniques. Having written JavaScript for the past few years, I could have just gone for RxJS. But again, I knew myself and felt it would give me way too much room for “going against the grain”. I needed something that would enforce me to solve everything in a functional manner. This is where Elm comes in.</p>
+<h3 id="elm-whats-that">Elm? What’s that?</h3>
+<p><a href="http://elm-lang.org/">Elm</a> is a programming language that compiles to HTML5: HTML, CSS and JavaScript. Depending on how you display your output, it may be a <code>&lt;canvas&gt;</code> with objects inside, or a more traditional web page. Let me repeat. Elm is a language, which compiles into the <em>three languages</em> used to build web apps. What’s more, it is a functional reactive programming language with strong types and immutable data structures.</p>
+<p>Okay, so you may have gathered I am no expert in this field, but in case you’re lost, here are my short explanations on the terminology: <a href="#appendix-glossary">Appendix: Glossary</a>.</p>
+<h2 id="part-i.-restriction-proves-helpful">Part I. Restriction proves helpful</h2>
+<p>I decided to try and make a Space Invaders type of game (or a base for one) with Elm. Let’s first consider how it works from the player’s perspective. - There is a ship representing the player near the bottom of the screen - The player can move the ship left and right with corresponding arrow buttons - The player can shoot with the up arrow</p>
+<p>Okay, let’s switch the point of view now and revise from the ship’s perspective. - Ship has a position on a 1D axis - Ship can have a velocity (left or right) - Ship changes position according to its velocity - Ship can be shooting or not</p>
+<p>This basically gave me a definition of what the <code>Ship</code> should look like as a data structure, or a <a href="http://elm-lang.org/guide/core-language#records">Record</a> in Elm terminology. Although optional, I like to define these things as type aliases, which will allow the use of <code>Ship</code> in type annotations.</p>
+<div class="sourceCode"><pre class="sourceCode haskell"><code class="sourceCode haskell"><span class="kw">type</span> alias <span class="dt">Ship</span> <span class="fu">=</span>
+  { position <span class="fu">:</span> <span class="dt">Float</span>  <span class="co">-- just 1 degree of freedom (left-right)</span>
+  , velocity <span class="fu">:</span> <span class="dt">Float</span>  <span class="co">-- either 0, 1 or -1</span>
+  , shooting <span class="fu">:</span> <span class="dt">Bool</span>
+  }</code></pre></div>
+<p>Nice. Now let’s create one of those things then.</p>
+<div class="sourceCode"><pre class="sourceCode haskell"><code class="sourceCode haskell">initShip <span class="fu">:</span> <span class="dt">Ship</span>   <span class="co">-- this is the type annotation</span>
+initShip <span class="fu">=</span>
+  { position <span class="fu">=</span> <span class="dv">0</span>      <span class="co">-- the type is Float</span>
+  , velocity <span class="fu">=</span> <span class="dv">0</span>      <span class="co">-- Float</span>
+  , shooting <span class="fu">=</span> <span class="dt">False</span>  <span class="co">-- Bool</span>
+  }</code></pre></div>
+<p>So we got to an interesting point already. Take another look at the definition above. Is it a simple statement? Is it a function definition? It doesn’t matter! <code>initShip</code> can be thought of either as just the literal record defined, or a function that always returns that record. Because the function is pure, and the data structure is immutable, there is no way to distinguish between those. Wow, cool.</p>
+<blockquote>
+<p><em>Sidenote:</em> If you’re like me, you’re now thinking what happens if you try to reassign the <code>initShip</code>. Well, a compile-time error happens: “Name Collision: There can only be one definition of ‘foo’.”</p>
+</blockquote>
+<p>Alright, moving on to moving the ship! I remember from high school that _s = v*dt_, or moved distance is the velocity times timedifference. So that’s how I want to update my ship. In Elm, that would be something like the following.</p>
+<div class="sourceCode"><pre class="sourceCode haskell"><code class="sourceCode haskell">applyPhysics <span class="fu">:</span> <span class="dt">Float</span> <span class="ot">-&gt;</span> <span class="dt">Ship</span> <span class="ot">-&gt;</span> <span class="dt">Ship</span>
+applyPhysics dt ship <span class="fu">=</span>
+  { ship <span class="fu">|</span> position <span class="fu">=</span> ship<span class="fu">.</span>position <span class="fu">+</span> ship<span class="fu">.</span>velocity <span class="fu">*</span> dt }</code></pre></div>
+<p>The type annotation says: given a <code>Float</code> and a <code>Ship</code>, I will return a <code>Ship</code>, but also: given a <code>Float</code>, I will return <code>Ship -&gt; Ship</code>. For example, <code>(applyPhysics 16.7)</code> would actually return a working function to which we can pass a <code>Ship</code>, and get the physics-applied ship as the return value. This property is called <a href="http://en.wikipedia.org/wiki/Currying">Currying</a> and all Elm functions automatically behave this way.</p>
+<blockquote>
+<p><em>Sidenote:</em> So what’s the point of all this? Well, say I want to create a cross-reference table of two lists of values of <code>Item</code>. I know how to formulate that as “given a list and a simple value, find matching items from the list”, or <code>findMatches : List -&gt; Item -&gt; List</code>. But I need to map the other list with something that “already knows” the previous list. That’s where currying is great: I can just go <code>crossReference = map (findMatches listA) listB</code> and be done with it. <code>(findMatches listA)</code> is a function of type <code>Item -&gt; List</code>, which is exactly what the doctor ordered.</p>
+</blockquote>
+<p>Now getting back to the actual subject, <code>applyPhysics</code> created a new record, using the given <code>Ship</code> as a base, while setting the <code>position</code> to something different. That is what the <code>{ ship | position = .. }</code> syntax means. For more on this, see <a href="http://elm-lang.org/guide/core-language#records">Updating Records</a>.</p>
+<p>Updating the other two properties of the ship can be done similarly:</p>
+<div class="sourceCode"><pre class="sourceCode haskell"><code class="sourceCode haskell">updateVelocity <span class="fu">:</span> <span class="dt">Float</span> <span class="ot">-&gt;</span> <span class="dt">Ship</span> <span class="ot">-&gt;</span> <span class="dt">Ship</span>
+updateVelocity newVelocity ship <span class="fu">=</span>
+  { ship <span class="fu">|</span> velocity <span class="fu">=</span> newVelocity }
+
+updateShooting <span class="fu">:</span> <span class="dt">Bool</span> <span class="ot">-&gt;</span> <span class="dt">Ship</span> <span class="ot">-&gt;</span> <span class="dt">Ship</span>
+updateShooting isShooting ship <span class="fu">=</span>
+  { ship <span class="fu">|</span> shooting <span class="fu">=</span> isShooting }</code></pre></div>
+<p>Putting it all together to get the current version of the ship, we could do something like this:</p>
+<div class="sourceCode"><pre class="sourceCode haskell"><code class="sourceCode haskell"><span class="co">-- represents pressing the arrow buttons</span>
+<span class="co">-- x and y go from -1 to 1, and stay at 0 if nothing is pressed</span>
+<span class="kw">type</span> alias <span class="dt">Keys</span> <span class="fu">=</span> { x <span class="fu">:</span> <span class="dt">Int</span>, y <span class="fu">:</span> <span class="dt">Int</span> }
+
+update <span class="fu">:</span> <span class="dt">Float</span> <span class="ot">-&gt;</span> <span class="dt">Keys</span> <span class="ot">-&gt;</span> <span class="dt">Ship</span> <span class="ot">-&gt;</span> <span class="dt">Ship</span>
+update dt keys ship <span class="fu">=</span>
+  <span class="kw">let</span> newVel      <span class="fu">=</span> toFloat keys<span class="fu">.</span>x  <span class="co">-- `let` defines local variables for `in`</span>
+      isShooting  <span class="fu">=</span> keys<span class="fu">.</span>y <span class="fu">&gt;</span> <span class="dv">0</span>
+  <span class="kw">in</span>  updateVelocity newVel (updateShooting isShooting (applyPhysics dt ship))</code></pre></div>
+<p>Now if I could just call <code>update</code> 30 times per second, giving it the time difference from last update, the keys pressed and the previous incarnation of <code>ship</code>, I’d have a nice little game model going on. Except of course I couldn’t see anything since there is no render… but in principle.</p>
+<p>So let’s just quickly recap what’s happened thus far.</p>
+<ul>
+<li>Type aliases define data models</li>
+<li>All data is immutable</li>
+<li>Type annotations clarify the goal of the function</li>
+<li>All of the functions are pure</li>
+</ul>
+<p>Actually, there is no way to accidentally change state in the language. Also, there are no loops of any kind.</p>
+<p>I’ve covered quite a lot of ground already with my game. There is a model and all functions that update the model have been defined. Only trouble is that all of the functions operate based on the ship from the previous update. Remember, in Elm you cannot store the state in the shared scope in any way, not even for the current module – there are no ways to alter anything that’s been defined before. So how can anything really change in the program?</p>
+<h2 id="part-ii.-state-is-a-result-of-an-immutable-past">Part II. State is a result of an immutable past</h2>
+<p>This is the point where some mind-bending realizations need to happen. In the object oriented programming approach, the state of a program is “scattered” among several entities. The <code>Ship</code> in this case would be a class and <code>myShip</code> would be an instance of that class. At any given time during the program, <code>myShip</code> would know the value of its position and other attributes. Not so in functional programming. At any given time during the program, <code>initShip</code> will simply be the same thing it was in the beginning. To get the relevant current state of things, I need to look at what has happened in the past. I need to use those happenings as input to the functions I’ve defined and only then I get the <code>Ship</code> as it currently should be. This quite the departure from what I am used to, so I will break down the process.</p>
+<h3 id="the-first-step">The first step</h3>
+<p>In the beginning there was <code>initShip</code> with its dull <code>0, 0, False</code> values. There were also functions that could transform a <code>Ship</code> into another <code>Ship</code>. In particular, there was the <code>update</code> function, which would take input and a ship to get an updated ship. I will repeat the function here, so you don’t need to scroll.</p>
+<div class="sourceCode"><pre class="sourceCode haskell"><code class="sourceCode haskell">update <span class="fu">:</span> <span class="dt">Float</span> <span class="ot">-&gt;</span> <span class="dt">Keys</span> <span class="ot">-&gt;</span> <span class="dt">Ship</span> <span class="ot">-&gt;</span> <span class="dt">Ship</span>
+update dt keys ship <span class="fu">=</span>
+  <span class="kw">let</span> newVel      <span class="fu">=</span> toFloat keys<span class="fu">.</span>x
+      isShooting  <span class="fu">=</span> keys<span class="fu">.</span>y <span class="fu">&gt;</span> <span class="dv">0</span>
+  <span class="kw">in</span>  updateVelocity newVel (updateShooting isShooting (applyPhysics dt ship))</code></pre></div>
+<p>So if <code>initShip</code> is the initial state of the model, I can go one step forward from that, at least. Elm programs define a <code>main</code> function, that gets run when the program starts, so let’s try showing <code>initShip</code> first. I import the <code>Graphics.Element</code> package to use the <code>show</code> function.</p>
+<div class="sourceCode"><pre class="sourceCode haskell"><code class="sourceCode haskell"><span class="kw">import </span><span class="dt">Graphics.Element</span> exposing (..)
+
+<span class="co">-- (other code)</span>
+main <span class="fu">:</span> <span class="dt">Element</span>
+main <span class="fu">=</span> show initShip</code></pre></div>
+<p>This gives us</p>
+<div class="sourceCode"><pre class="sourceCode haskell"><code class="sourceCode haskell">{ position <span class="fu">=</span> <span class="dv">0</span>, shooting <span class="fu">=</span> <span class="dt">False</span>, velocity <span class="fu">=</span> <span class="dv">0</span> }</code></pre></div>
+<p>Now if I want to go forward one step, I can apply the <code>update</code> function once before showing the ship. Let’s try that then. I set the <code>keys</code> so that left and up are being pressed to see some effects (<code>x</code> is -1 and <code>y</code> is 1).</p>
+<div class="sourceCode"><pre class="sourceCode haskell"><code class="sourceCode haskell">dt <span class="fu">=</span> <span class="dv">100</span>
+keys <span class="fu">=</span> { x <span class="fu">=</span> <span class="fu">-</span><span class="dv">1</span>, y <span class="fu">=</span> <span class="dv">1</span> }
+main <span class="fu">=</span> show (update dt keys initShip)</code></pre></div>
+<p>This gives us</p>
+<div class="sourceCode"><pre class="sourceCode haskell"><code class="sourceCode haskell">{ position <span class="fu">=</span> <span class="dv">0</span>, shooting <span class="fu">=</span> <span class="dt">True</span>, velocity <span class="fu">=</span> <span class="fu">-</span><span class="dv">1</span> }</code></pre></div>
+<p>All right! So this works! My ship is <code>shooting</code> because the up button is pressed, and it has a negative <code>velocity</code> to account for the left button being pressed. Notice how the <code>position</code> stayed the same, still. This is because I defined the update sequence to first apply physics and then update the other properties. <code>initShip</code>’s velocity was 0, so applying physics didn’t move it.</p>
+<h3 id="signals">Signals</h3>
+<p>At this point I’d like you to take your time and read <a href="http://elm-lang.org/guide/reactivity#signals">Signals on Elm-lang</a>, and if you’re interested, maybe even watch a video or two about the Elm Signals. I am going to assume you know what Signals are from now on.</p>
+<p>But just to recap: a signal is like a stream, where for any given point of time, there is a simple value. So a signal of mouse click count will always hold an integer - in other words, it is of type <code>Signal Int</code>. I could make a signal of ships, too, if I wanted: a <code>Signal Ship</code>, which would always hold a current <code>Ship</code>. But then I’d need to refactor all of my previous functions and take into account that the values are not simple, but in fact signals of that value… So I’ll heed the advice from Elm-lang.org: &gt; A common way to get stuck using signals is to try to use them too much. It is tempting to try to do everything with signals, but it is usually best to write as much code as possible without them.</p>
+<p>So my ship can move one step forward, but that’s not terribly exciting. I want it to move left when I am pressing left and vice versa. And most importantly, I want it to shoot when I press up!</p>
+<p>I have actually constructed my models and logic in a great way, because there happens to be a ready-made signal called <a href="http://package.elm-lang.org/packages/elm-lang/core/2.0.1/Time#fps"><code>fps n</code></a>, which updates <code>n</code> times per second. It tells the time difference from the last update. This is the <code>dt</code> I need. Furthermore, there is another built-in signal called <a href="http://package.elm-lang.org/packages/elm-lang/core/2.0.1/Keyboard#arrows"><code>Keyboard.arrows</code></a>, which holds the current arrow buttons in exactly the same way I defined <code>Keys</code>. This gets updated whenever there is a change.</p>
+<p>Okay, in order to get an interesting input signal, I will have to combine these two built-in signals so that “on each update of <code>fps</code>, check the status of <code>Keyboard.arrows</code> and report both of them”.</p>
+<ul>
+<li>“Both of them” sounds like a tuple, <code>(Float, Keys)</code></li>
+<li>“on each update” sounds like <a href="http://package.elm-lang.org/packages/elm-lang/core/2.0.1/Signal#sampleOn"><code>Signal.sampleOn</code></a></li>
+</ul>
+<p>In code, this should look something like the following.</p>
+<div class="sourceCode"><pre class="sourceCode haskell"><code class="sourceCode haskell"><span class="kw">import </span><span class="dt">Time</span> exposing (..)
+<span class="kw">import </span><span class="dt">Keyboard</span>
+
+<span class="co">-- (other code)</span>
+inputSignal <span class="fu">:</span> <span class="dt">Signal</span> (<span class="dt">Float</span>, <span class="dt">Keys</span>)
+inputSignal <span class="fu">=</span>
+  <span class="kw">let</span> delta <span class="fu">=</span> fps <span class="dv">30</span>
+      <span class="co">-- map the two signals into a tuple signal</span>
+      tuples <span class="fu">=</span> Signal.map2 (,) delta Keyboard.arrows
+  <span class="co">-- and update `inputSignal` whenever `delta` changes</span>
+  <span class="kw">in</span>  Signal.sampleOn delta tuples</code></pre></div>
+<p>Cool, now all I need to do is wire up my <code>main</code> so that the input is actually used with the <code>update</code> function. For this, I need <code>Signal.foldp</code>, or “fold from the past”. This is analogous to having a simpler fold like:</p>
+<div class="sourceCode"><pre class="sourceCode haskell"><code class="sourceCode haskell">summed <span class="fu">=</span> List.foldl (<span class="fu">+</span>) <span class="dv">0</span> [<span class="dv">1</span>,<span class="dv">2</span>,<span class="dv">3</span>,<span class="dv">4</span>,<span class="dv">5</span>]</code></pre></div>
+<p>Here we start with 0, then sum that up with 1, then sum that up with 2 and so on, until all the numbers are summed up, and we arrive at the return value of 15.</p>
+<p>So in short, this should make a lot of sense. <code>foldp</code> looks at the value at the “start of time” and folds the whole past of the signal to finally arrive at the present moment – the entire past of the program reduced to the present state. Mind.. Blown. Well, for me at least.</p>
+<p>Anyway, let’s see how that works in code. Now since I will have the <code>main</code> function update its results, it should also reflect that in its type, so I’ll make it a <code>Signal Element</code> instead of just <code>Element</code> like before.</p>
+<div class="sourceCode"><pre class="sourceCode haskell"><code class="sourceCode haskell">main <span class="fu">:</span> <span class="dt">Signal</span> <span class="dt">Element</span>
+main <span class="fu">=</span> Signal.map show (Signal.foldp update initShip inputSignal)</code></pre></div>
+<p>A couple of things are happening there:</p>
+<ol style="list-style-type: decimal">
+<li>I use <code>Signal.foldp</code> to apply <code>update</code> with the signal, starting with <code>initShip</code>.</li>
+<li>Folding still results in a signal, since it will continue updating the “folded state”.</li>
+<li>I use <code>Signal.map</code> to map the current value of my “folded state” to <code>show</code>.</li>
+</ol>
+<p>Only this results in a crapton of type errors, the bottom-most of which is the following.</p>
+<pre><code>Type mismatch between the following types on line 49, column 38 to 44:
+
+       Temp9243.Ship -&gt; Temp9243.Ship
+
+       Temp9243.Keys
+
+   It is related to the following expression:
+
+       update</code></pre>
+<p>Uhh… Well, at least I know where to look for. My function’s type signature looks like this: <code>update : Float -&gt; Keys -&gt; Ship -&gt; Ship</code>. However, what I’m passing to it is actually <code>(Float, Keys)</code> and <code>Ship</code>. So yeah, I’ll just change my function signature a little…</p>
+<div class="sourceCode"><pre class="sourceCode haskell"><code class="sourceCode haskell">update <span class="fu">:</span> (<span class="dt">Float</span>, <span class="dt">Keys</span>) <span class="ot">-&gt;</span> <span class="dt">Ship</span> <span class="ot">-&gt;</span> <span class="dt">Ship</span>
+update (dt, keys) ship <span class="fu">=</span>
+  <span class="co">-- the same as before</span></code></pre></div>
+<p>… and it works! 🎉</p>
+<p>I now have a fully functional model, updates and everything, for my game, in a total of 50 lines of code! The whole thing can be seen here: <a href="#gameelm">game.elm</a>. To see it in action, you can copy-paste the code into the <a href="http://elm-lang.org/try">Try Elm</a> interactive editor (in case nothing happens, click Compile and then the right-hand side of the screen, then press the arrow buttons).</p>
+<p>Again, a quick recap of what happened here:</p>
+<ul>
+<li>A signal is a function of time</li>
+<li>For each moment in time, there exists a pure value of a signal</li>
+<li><code>Signal.foldp</code> reduces the value in the same sense as <code>List.foldl</code></li>
+<li>Each state of the program is explicitly derived from all the things that have happened in the past</li>
+</ul>
+<h2 id="part-iii.-the-learnings">Part III. The learnings</h2>
+<p>There was a lot to learn in this endeavor for me. I hope you, too, have learned something while reading this. My personal (subjective) findings were:</p>
+<ul>
+<li>Types are actually pretty nice - and useful</li>
+<li>Immutability and restricting global state didn’t feel that strange after all</li>
+<li>Functional programming in Elm is very terse and very readable</li>
+<li>FP makes input and output explicit</li>
+<li>Because of the whole idea of state is so different, it is a bit tricky to grasp, but it does make a lot of sense</li>
+<li>There are no worries about bugs due to weird mixed state as the state is always a direct result of input</li>
+<li>Listening in on updates (reactive), rather than causing things to change (imperative) felt good</li>
+</ul>
+<p>One last thing: <em>if you liked this article, please consider sharing it with your friends. Sharing is caring!</em></p>
+<h2 id="appendix-glossary">Appendix: Glossary</h2>
+<p><strong>Immutable data</strong> means that once you assign a value to something, it cannot be changed. Take a JavaScript <code>Array</code> for example. If it was immutable, <code>myArray.push(item)</code> could not change (mutate) the existing <code>myArray</code>, but would instead return a new one with the same items plus the new one.</p>
+<p><strong>Strongly typed</strong> languages look to prevent unexpected behavior by disallowing using a string in place of an integer, for example. Languages like Scala, Haskell and Elm utilize <a href="http://en.wikipedia.org/wiki/Strong_and_weak_typing#Static_type-checking">static type checking</a> to prevent compiling altogether when there is a type mismatch.</p>
+<p><strong>Pure functions</strong> always return the same value given the same arguments, and have no side-effects. In essence, the function must not depend on anything else besides the arguments, and it must not mutate anything.</p>
+<p><strong>Functional programming</strong> refers to the paradigm where the program is mainly expressed as pure functions.</p>
+<p><strong>Reactive programming</strong> about having something that a component can start listening for, and react to the events as it pleases. In Elm, these listenable things are signals. The component using a signal knows how to utilize it, but the signal has no knowledge of the component(s) that it is affecting.</p>
+<h2 id="game.elm">game.elm</h2>
+<div class="sourceCode"><pre class="sourceCode haskell"><code class="sourceCode haskell"><span class="kw">import </span><span class="dt">Graphics.Element</span> exposing (..)
+<span class="kw">import </span><span class="dt">Time</span> exposing (..)
+<span class="kw">import </span><span class="dt">Keyboard</span>
+
+<span class="co">-- MODEL</span>
+<span class="kw">type</span> alias <span class="dt">Ship</span> <span class="fu">=</span>
+  { position <span class="fu">:</span> <span class="dt">Float</span>  <span class="co">-- just 1 degree of freedom (left-right)</span>
+  , velocity <span class="fu">:</span> <span class="dt">Float</span>  <span class="co">-- either 0, 1 or -1</span>
+  , shooting <span class="fu">:</span> <span class="dt">Bool</span>
+  }
+
+initShip <span class="fu">:</span> <span class="dt">Ship</span>
+initShip <span class="fu">=</span>
+  { position <span class="fu">=</span> <span class="dv">0</span>
+  , velocity <span class="fu">=</span> <span class="dv">0</span>
+  , shooting <span class="fu">=</span> <span class="dt">False</span>
+  }
+
+<span class="kw">type</span> alias <span class="dt">Keys</span> <span class="fu">=</span> { x <span class="fu">:</span> <span class="dt">Int</span>, y <span class="fu">:</span> <span class="dt">Int</span> }
+
+
+<span class="co">-- UPDATE</span>
+applyPhysics <span class="fu">:</span> <span class="dt">Float</span> <span class="ot">-&gt;</span> <span class="dt">Ship</span> <span class="ot">-&gt;</span> <span class="dt">Ship</span>
+applyPhysics dt ship <span class="fu">=</span>
+  { ship <span class="fu">|</span> position <span class="fu">=</span> ship<span class="fu">.</span>position <span class="fu">+</span> ship<span class="fu">.</span>velocity <span class="fu">*</span> dt }
+
+updateVelocity <span class="fu">:</span> <span class="dt">Float</span> <span class="ot">-&gt;</span> <span class="dt">Ship</span> <span class="ot">-&gt;</span> <span class="dt">Ship</span>
+updateVelocity newVelocity ship <span class="fu">=</span>
+  { ship <span class="fu">|</span> velocity <span class="fu">=</span> newVelocity }
+
+updateShooting <span class="fu">:</span> <span class="dt">Bool</span> <span class="ot">-&gt;</span> <span class="dt">Ship</span> <span class="ot">-&gt;</span> <span class="dt">Ship</span>
+updateShooting isShooting ship <span class="fu">=</span>
+  { ship <span class="fu">|</span> shooting <span class="fu">=</span> isShooting }
+
+update <span class="fu">:</span> (<span class="dt">Float</span>, <span class="dt">Keys</span>) <span class="ot">-&gt;</span> <span class="dt">Ship</span> <span class="ot">-&gt;</span> <span class="dt">Ship</span>
+update (dt, keys) ship <span class="fu">=</span>
+  <span class="kw">let</span> newVel      <span class="fu">=</span> toFloat keys<span class="fu">.</span>x
+      isShooting  <span class="fu">=</span> keys<span class="fu">.</span>y <span class="fu">&gt;</span> <span class="dv">0</span>
+  <span class="kw">in</span>  updateVelocity newVel (updateShooting isShooting (applyPhysics dt ship))
+
+
+<span class="co">-- SIGNALS</span>
+inputSignal <span class="fu">:</span> <span class="dt">Signal</span> (<span class="dt">Float</span>, <span class="dt">Keys</span>)
+inputSignal <span class="fu">=</span>
+  <span class="kw">let</span> delta <span class="fu">=</span> fps <span class="dv">30</span>
+      tuples <span class="fu">=</span> Signal.map2 (,) delta Keyboard.arrows
+  <span class="kw">in</span>  Signal.sampleOn delta tuples
+
+main <span class="fu">:</span> <span class="dt">Signal</span> <span class="dt">Element</span>
+main <span class="fu">=</span> Signal.map show (Signal.foldp update initShip inputSignal)</code></pre></div>]]></summary>
+</entry>
+
+</feed>

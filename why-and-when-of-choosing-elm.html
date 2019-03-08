@@ -1,0 +1,157 @@
+<!DOCTYPE html>
+<html class="no-js">
+<head>
+  <meta charset="utf-8">
+  <meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1">
+  <title> The Why and When of Choosing Elm - Ossi Hanhinen</title>
+  <meta name="description" content="The Why and When of Choosing Elm">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <link rel="stylesheet" href="./css/main.css">
+</head>
+<body>
+  <section class="contain post">
+    <a href="./" class="back-link">&laquo; Home</a>
+
+    <header class="post-header">
+  
+  <h1 class="post-title">The Why and When of Choosing Elm</h1>
+  
+</header>
+<div class="post-meta">
+  <img class="profile-pic" src="./img/profile_tiny.jpg" alt>
+  <h3 class="author">
+    <span>Ossi Hanhinen</span>
+    <a href="https://twitter.com/ohanhi">@ohanhi</a>
+  </h3>
+  <p class="post-date">January 10, 2017</p>
+</div>
+
+<hr>
+
+<h3>Read this to</h3>
+<ul class="post-reasons">
+  
+  <li>gain a quick understanding of where Elm fits the picture well and where it poses challenges</li>
+  
+</ul>
+
+<h3>I expect you to know</h3>
+<ul class="post-prereqs">
+  
+  <li>the basics of frontend development</li>
+  
+</ul>
+
+<hr> <p><em>For a visual version of this content, <a href="why-and-when-of-choosing-elm-visual.html">see here</a>.</em></p>
+<h2 id="what-is-elm">What is Elm?</h2>
+<ul>
+<li>Language (and “framework”) for building web frontend applications</li>
+<li>Can be used in place of HTML, CSS and JavaScript</li>
+<li>Compiles into the above</li>
+</ul>
+<h2 id="why-choose-elm">Why choose Elm?</h2>
+<h3 id="the-problem-with-javascript">The problem with JavaScript</h3>
+<ul>
+<li>Basically nobody knows all of JavaScript - in fact it is getting more and more complex each year</li>
+<li>Different people have very different ways of using the language (object-oriented, functional, this-less, …)</li>
+<li>With JavaScript, anything may suddenly fail in production because of an oversight</li>
+<li>Nothing can save you from that (except maybe boatloads of menial tests: what if this function is called without arguments, with an empty array…)</li>
+<li>It takes a great deal of discipline to keep code readable and adhere to the project’s code style</li>
+<li>Huge potential for regressions when refactoring</li>
+<li>Every project has a wildly different build scheme since there is no “official” or even generally settled-upon toolchain</li>
+<li>It is common for builds to break because a library was updated</li>
+</ul>
+<p>➡️ JavaScript is unwieldy in big projects</p>
+<p>➡️ JavaScript is in fact poorly suited for lean development, because refactoring is risky</p>
+<h3 id="how-elm-solves-it">How Elm solves it</h3>
+<ul>
+<li>Elm is a simple and compact language</li>
+<li>It does not have the baggage of JavaScript’s history</li>
+<li>Past releases have made it simpler and simpler - they removing language features that cause confusion</li>
+<li>It has a great type system that helps model data and application states
+<ul>
+<li>This can be used to eliminate an entire category of bugs: arriving in impossible states</li>
+</ul></li>
+<li>If the code compiles, it is correct (can still have logic errors, of course)</li>
+<li>Elm has no <code>null</code> or <code>undefined</code></li>
+<li>Elm has no runtime exceptions except for <code>Debug.crash</code></li>
+<li>All potential cases need to be handled - no surprises or unhandled errors, guaranteed!</li>
+</ul>
+<blockquote>
+<p>Using TypeScript or Flow can give some of the benefits, but many libraries’ typings will still non-exhaustive)</p>
+</blockquote>
+<ul>
+<li>Elm enforces writing code in a single paradigm and style (functional, no mutable state)</li>
+<li>It comes with great tooling out of the box</li>
+<li>Builds can never break because of library updates, because semantic versioning is ensured by the package manager</li>
+</ul>
+<p>➡️ Elm is very well suited for lean development, because refactoring Elm is fun and we can do it with confidence!</p>
+<h3 id="but-a-new-language-surely-its-an-additional-cost">But a new language, surely it’s an additional cost!</h3>
+<ul>
+<li>JavaScript projects use a combination of e.g. React, Redux, redux-loop, etc.</li>
+<li>They might even be using TypeScript or Flow, which are languages with great improvements over plain JS
+<ul>
+<li>But they build on top of JS, and as said, basically no one knows even all of JavaScript</li>
+</ul></li>
+<li>There is very likely no other project with the exact same libraries and/or code style
+<ul>
+<li>New dev in a JS project needs at least a week or two to learn the project</li>
+</ul></li>
+<li>Elm is a small language
+<ul>
+<li>It takes a couple of weeks to be productive</li>
+<li>About a month or two to master all of it</li>
+</ul></li>
+<li>The Elm compiler is the state of the art when it comes to <a href="http://elm-lang.org/blog/compilers-as-assistants">friendly error messages</a></li>
+<li>All Elm projects follow the same general pattern, because the language doesn’t allow anything else</li>
+<li>Elm code is easy to read as it communicates intentions well</li>
+<li>New dev can’t inadvertently mess up an Elm project</li>
+</ul>
+<h3 id="what-if-the-language-development-is-discontinued-in-a-year">What if the language development is discontinued in a year</h3>
+<ul>
+<li>Even if the language development was discontinued today, it would be fine</li>
+<li>There’s no reason why a project couldn’t be using an older version of Elm for years to come</li>
+<li>JS as a compile target is solid, because all old JS code will continue to work in browsers also in the future. (One JavaScript (1JS) principle)</li>
+</ul>
+<h2 id="when-to-choose-elm-and-when-not-to">When to choose Elm and when not to</h2>
+<h3 id="what-is-elm-a-poor-fit-for">What is Elm a poor fit for</h3>
+<ul>
+<li>Mostly static pages (e.g. news websites)</li>
+<li>Very short projects where you actually want to use ready-made UI components (e.g. MVP admin UIs)</li>
+<li>Lots of integration with terrible third-party JavaScript (advertisements in particular)</li>
+<li>Sites that need server-side rendering</li>
+</ul>
+<blockquote>
+<p>Also worth remembering, it can’t be used to build a backend</p>
+</blockquote>
+<h3 id="what-is-elm-great-for">What is Elm great for</h3>
+<ul>
+<li>Single page applications</li>
+<li>Bespoke design</li>
+<li>Longer project (&gt; 2 months)</li>
+<li>Especially helpful for bigger frontend teams</li>
+</ul>
+
+    <div class="post-footer">
+      Maybe your followers would be interested in this post?
+      <a href="https://twitter.com/intent/tweet?original_referer=http%3A%2F%2Fohanhi.com%2Fwhy-and-when-of-choosing-elm.html&amp;text=The%20Why%20and%20When%20of%20Choosing%20Elm&amp;url=http%3A%2F%2Fohanhi.com%2Fwhy-and-when-of-choosing-elm.html&amp;via=ohanhi" rel="nofollow" target="_blank">Get tweety with it!</a>
+    </div>
+
+  </section>
+  <footer>
+    <a href="https://twitter.com/ohanhi">Twitter</a>
+    &ndash;
+    <a href="https://github.com/ohanhi">GitHub</a>
+  </footer>
+
+  <script src="js/main.js"></script>
+  <script>
+  (function(b,o,i,l,e,r){b.GoogleAnalyticsObject=l;b[l]||(b[l]=
+    function(){(b[l].q=b[l].q||[]).push(arguments)});b[l].l=+new Date;
+    e=o.createElement(i);r=o.getElementsByTagName(i)[0];
+    e.src='https://www.google-analytics.com/analytics.js';
+    r.parentNode.insertBefore(e,r)}(window,document,'script','ga'));
+    ga('create','UA-58943555-1');ga('send','pageview');
+    </script>
+  </body>
+  </html>

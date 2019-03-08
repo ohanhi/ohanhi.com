@@ -1,0 +1,146 @@
+<!DOCTYPE html>
+<html class="no-js">
+<head>
+  <meta charset="utf-8">
+  <meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1">
+  <title> Tasks in Modern Elm - Ossi Hanhinen</title>
+  <meta name="description" content="Tasks in Modern Elm">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <link rel="stylesheet" href="./css/main.css">
+</head>
+<body>
+  <section class="contain post">
+    <a href="./" class="back-link">&laquo; Home</a>
+
+    <header class="post-header">
+  
+  <h1 class="post-title">Tasks in Modern Elm</h1>
+  
+</header>
+<div class="post-meta">
+  <img class="profile-pic" src="./img/profile_tiny.jpg" alt>
+  <h3 class="author">
+    <span>Ossi Hanhinen</span>
+    <a href="https://twitter.com/ohanhi">@ohanhi</a>
+  </h3>
+  <p class="post-date">February 9, 2018</p>
+</div>
+
+<hr>
+
+<h3>Read this to</h3>
+<ul class="post-reasons">
+  
+  <li>learn about chaining effects in Elm 0.18</li>
+  
+</ul>
+
+<h3>I expect you to know</h3>
+<ul class="post-prereqs">
+  
+  <li>Elm basics</li>
+  
+</ul>
+
+<hr> <h2 id="why-tasks-matter">Why tasks matter</h2>
+<p>The <a href="https://guide.elm-lang.org/">official guide</a> is great for most things in Elm 0.18, but it still doesn’t cover a very important feature of the language: <code>Task</code>. With the introduction of Elm 0.17, use cases for tasks shrunk from an everyday occurrence to a “you most likely don’t need this” status.</p>
+<p>The use case that does remain is tying several side-effects together. A common example of this is when people need a time stamp to go with their HTTP request. <code>Cmd</code>s cannot be set to run one after another. One <em>could</em> add a subscription to <code>Time.every (Time.second)</code> and have the current time always in the model for example, but a whole bunch of requests can happen in a second, and a millisecond timer is just out of the question. So how do we solve this? Tasks.</p>
+<h2 id="task-basics">Task basics</h2>
+<p>Let’s first take a look at how tasks work on their own, before we start bundling them up with each other. One of the simplest tasks in <code>elm-lang/core</code> just so happens to relate to the example above: <code>Time.now</code>. Here’s what the <a href="http://package.elm-lang.org/packages/elm-lang/core/5.1.1/Time#now">current documentation</a> says about it:</p>
+<div class="sourceCode"><pre class="sourceCode haskell"><code class="sourceCode haskell">now <span class="fu">:</span> <span class="dt">Task</span> x <span class="dt">Time</span></code></pre></div>
+<p>“Get the <code>Time</code> at the moment when this task is run.”</p>
+<p>If you haven’t been dealing with tasks before, you might find it strange that this is not a function that returns a <code>Cmd msg</code>. In fact, it is not a function at all but a constant value! What is going on?</p>
+<p>I find it helpful to think of tasks as if they were shopping lists. A shopping list contains detailed instructions of what should be fetched from the grocery store, but that doesn’t mean the shopping is done. I need to use the list while at the grocery store in order to get an end result. Similarly, the <code>Time.now</code> task is an instruction for the Elm runtime to find the current time, but the instruction does not do anything until it is turned into a command and returned in a branch of <code>update</code>. Elm is running all the errands with the outside world here, we only need to make sure the command gets returned.</p>
+<p>So to use a task, we need to turn it into a command. There are two ways to do this: <code>Task.perform</code> and <code>Task.attempt</code>. As you might guess from the naming, <code>perform</code> simply does the thing, while <code>attempt</code> has an expectation of failure involved. In our case, <code>Time.now</code> cannot really fail, so let’s use perform.</p>
+<div class="sourceCode"><pre class="sourceCode haskell"><code class="sourceCode haskell"><span class="kw">import </span><span class="dt">Time</span> exposing (<span class="dt">Time</span>)
+<span class="kw">import </span><span class="dt">Task</span>
+
+<span class="kw">type</span> <span class="dt">Msg</span> <span class="fu">=</span> <span class="dt">TimeUpdated</span> <span class="dt">Time</span>
+
+getTime <span class="fu">:</span> <span class="dt">Cmd</span> <span class="dt">Msg</span>
+getTime <span class="fu">=</span>
+    Time.now
+        <span class="fu">|&gt;</span> Task.perform <span class="dt">TimeUpdated</span></code></pre></div>
+<p>We can use the <code>getTime</code> command just like any other now and when it completes, it results in a <code>TimeUpdated</code> message with the current time. Great!</p>
+<p>What about tasks that can fail? Let’s use <code>Http.get</code> as an example. There are plenty of ways for an HTTP request to fail, ranging from network issues to expired authentication tokens. These are all categorized under the <code>Http.Error</code> type. If you’ve made HTTP calls in Elm before, you have probably used <code>Http.send</code> to convert the request to a <code>Cmd Msg</code>. Instead of doing that, let’s take a look at how we can do the same using <code>Http.toTask</code>. For simplicity’s sake we will use <code>getString</code>, which does not need a decoder.</p>
+<div class="sourceCode"><pre class="sourceCode haskell"><code class="sourceCode haskell"><span class="kw">import </span><span class="dt">Http</span>
+<span class="kw">import </span><span class="dt">Task</span> exposing (<span class="dt">Task</span>)
+
+<span class="co">-- The message is just like usual, containing a result</span>
+<span class="kw">type</span> <span class="dt">Msg</span> <span class="fu">=</span> <span class="dt">GotResponse</span> (<span class="dt">Result</span> <span class="dt">Http.Error</span> <span class="dt">String</span>)
+
+<span class="co">-- Here we are defining the task</span>
+getResponseTask <span class="fu">:</span> <span class="dt">Task</span> <span class="dt">Http.Error</span> <span class="dt">String</span>
+getResponseTask <span class="fu">=</span>
+    Http.getString <span class="st">&quot;https://jsonplaceholder.typicode.com/posts/1&quot;</span>
+        <span class="fu">|&gt;</span> Http.toTask
+
+<span class="co">-- And here we turn the task into a regular old command</span>
+getResponseCmd <span class="fu">:</span> <span class="dt">Cmd</span> <span class="dt">Msg</span>
+getResponseCmd <span class="fu">=</span>
+    getResponseTask
+        <span class="fu">|&gt;</span> Task.attempt <span class="dt">GotResponse</span></code></pre></div>
+<p>We could have put the whole thing in a single pipeline, of course:</p>
+<pre><code>Http.getString &quot;https://jsonplaceholder.typicode.com/posts/1&quot;
+    |&gt; Http.toTask
+    |&gt; Task.attempt GotResponse</code></pre>
+<p>That would be the same as using <code>Http.send</code> in the first place, though. As a matter of fact, <code>Http.send</code> <strong>is</strong> using <code>toTask</code> and <code>Task.attempt</code> underneath <a href="https://github.com/elm-lang/http/blob/1.0.0/src/Http.elm#L85">(source)</a>.</p>
+<p>A full compiling and working example using an HTTP task can be found <a href="https://ellie-app.com/r9XKVFtjVa1/0">on Ellie</a>.</p>
+<h2 id="chaining-tasks">Chaining tasks</h2>
+<p>Now that we’ve established how we can use single tasks on their own, it is time to use them for their true purpose: effects depending on others. For this we will use a function called <code>andThen</code>. Let’s see what it looks like.</p>
+<p>From the <a href="http://package.elm-lang.org/packages/elm-lang/core/5.1.1/Task#andThen">official documentation</a>:</p>
+<div class="sourceCode"><pre class="sourceCode haskell"><code class="sourceCode haskell">andThen <span class="fu">:</span> (a <span class="ot">-&gt;</span> <span class="dt">Task</span> x b) <span class="ot">-&gt;</span> <span class="dt">Task</span> x a <span class="ot">-&gt;</span> <span class="dt">Task</span> x b</code></pre></div>
+<p>“Chain together a task and a callback. The first task will run, and if it is successful, you give the result to the callback resulting in another task. This task then gets run.”</p>
+<p>Okay, maybe using the tasks from the previous chapter will make this clearer. Let’s imagine we have an API where we can ask for events from the past hour by providing a timestamp of “one hour ago”. This example doesn’t show the imports, decoders etc. to keep it down to the point.</p>
+<div class="sourceCode"><pre class="sourceCode haskell"><code class="sourceCode haskell">getEventsFromPastHour <span class="fu">:</span> <span class="dt">Cmd</span> <span class="dt">Msg</span>
+getEventsFromPastHour <span class="fu">=</span>
+    Time.now
+        <span class="fu">|&gt;</span> Task.andThen
+            (\currentTime <span class="ot">-&gt;</span>
+                getEventsFrom (currentTime <span class="fu">-</span> Time.hour)
+            )
+        <span class="fu">|&gt;</span> Task.attempt <span class="dt">GotResult</span>
+
+
+getEventsFrom <span class="fu">:</span> <span class="dt">Time</span> <span class="ot">-&gt;</span> <span class="dt">Task</span> <span class="dt">Http.Error</span> (<span class="dt">List</span> <span class="dt">Event</span>)
+getEventsFrom time <span class="fu">=</span>
+    Http.get (apiUrl <span class="fu">++</span> <span class="st">&quot;?from=&quot;</span> <span class="fu">++</span> toString time) eventsListDecoder
+        <span class="fu">|&gt;</span> Http.toTask</code></pre></div>
+<p>Let’s try to put this in words.</p>
+<ul>
+<li>Find out what time it is</li>
+<li>And then, ask for events from an hour before the current time</li>
+<li>When done, tell me how it went</li>
+</ul>
+<p>And again, in Elm code:</p>
+<div class="sourceCode"><pre class="sourceCode haskell"><code class="sourceCode haskell">Time.now
+    <span class="fu">|&gt;</span> Task.andThen
+        (\currentTime <span class="ot">-&gt;</span>
+            getEventsFrom (currentTime <span class="fu">-</span> Time.hour)
+        )
+    <span class="fu">|&gt;</span> Task.attempt <span class="dt">GotResult</span></code></pre></div>
+<p>A full compilable example of this is again <a href="https://ellie-app.com/3ZsdCNsjVa1/0">on Ellie</a>. Sadly I couldn’t find a suitable open API to showcase this, but you can see the requests in your browser dev tools.</p>
+
+    <div class="post-footer">
+      Maybe your followers would be interested in this post?
+      <a href="https://twitter.com/intent/tweet?original_referer=http%3A%2F%2Fohanhi.com%2Ftasks-in-modern-elm.html&amp;text=Tasks%20in%20Modern%20Elm&amp;url=http%3A%2F%2Fohanhi.com%2Ftasks-in-modern-elm.html&amp;via=ohanhi" rel="nofollow" target="_blank">Get tweety with it!</a>
+    </div>
+
+  </section>
+  <footer>
+    <a href="https://twitter.com/ohanhi">Twitter</a>
+    &ndash;
+    <a href="https://github.com/ohanhi">GitHub</a>
+  </footer>
+
+  <script src="js/main.js"></script>
+  <script>
+  (function(b,o,i,l,e,r){b.GoogleAnalyticsObject=l;b[l]||(b[l]=
+    function(){(b[l].q=b[l].q||[]).push(arguments)});b[l].l=+new Date;
+    e=o.createElement(i);r=o.getElementsByTagName(i)[0];
+    e.src='https://www.google-analytics.com/analytics.js';
+    r.parentNode.insertBefore(e,r)}(window,document,'script','ga'));
+    ga('create','UA-58943555-1');ga('send','pageview');
+    </script>
+  </body>
+  </html>

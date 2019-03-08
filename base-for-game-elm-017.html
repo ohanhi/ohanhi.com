@@ -1,0 +1,382 @@
+<!DOCTYPE html>
+<html class="no-js">
+<head>
+  <meta charset="utf-8">
+  <meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1">
+  <title> Base for a game in Elm 0.17 - Ossi Hanhinen</title>
+  <meta name="description" content="Base for a game in Elm 0.17">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <link rel="stylesheet" href="./css/main.css">
+</head>
+<body>
+  <section class="contain post">
+    <a href="./" class="back-link">&laquo; Home</a>
+
+    <header class="post-header">
+  
+  <h1 class="post-title">Base for a game in Elm 0.17</h1>
+  
+  <h2>Revisiting the "hard way"</h2>
+  
+</header>
+<div class="post-meta">
+  <img class="profile-pic" src="./img/profile_tiny.jpg" alt>
+  <h3 class="author">
+    <span>Ossi Hanhinen</span>
+    <a href="https://twitter.com/ohanhi">@ohanhi</a>
+  </h3>
+  <p class="post-date">May 18, 2016</p>
+</div>
+
+<hr>
+
+<h3>Read this to</h3>
+<ul class="post-reasons">
+  
+  <li>learn the basics of Elm</li>
+  
+  <li>get acquainted with subscriptions</li>
+  
+</ul>
+
+<h3>I expect you to know</h3>
+<ul class="post-prereqs">
+  
+  <li>some programming</li>
+  
+</ul>
+
+<hr> <p><a href="http://chilicorn.org/"><img src="https://img.shields.io/badge/Sponsored%20by-Chilicorn-brightgreen.svg" /></a></p>
+<p>Licensed under <a href="https://creativecommons.org/licenses/by/4.0/">CC BY 4.0</a>.</p>
+<h2 id="foreword">Foreword</h2>
+<p>I first learned Elm about a year ago, in May 2015. I fell in love. I also wrote <a href="https://gist.github.com/ohanhi/0d3d83cf3f0d7bbea9db">an article</a> describing how to get started with the language by implementing the base for a game. The title of the article, <em>Learning FP the hard way</em>, was supposed to be a joke of sorts, as Elm is in fact a very easy language to learn! I’m not sure how many people got that. :)</p>
+<p>Since then, I have used Elm in two separate customer projects, and it has definitely <a href="http://futurice.com/blog/elm-in-the-real-world">made my work better</a>!</p>
+<p>The recent update (0.17) meant a <a href="http://elm-lang.org/blog/farewell-to-frp">rather large shift</a> in the way the language works, so I decided to revisit the original subject. So here it is: the base for a Space Invaders game in Elm 0.17!</p>
+<p>You can find all of the code on <a href="https://github.com/ohanhi/elm-game-base">GitHub</a>, along with some setup instructions, but it is also listed at the bottom of this article.</p>
+<h2 id="elm-what-was-it-again">Elm, what was it again?</h2>
+<p>Elm is a beautiful little functional language that makes building frontend web applications easy and fun. If you’re interested in an overview, I gave a talk about the language at GeeCON 2016, and the annotated slides are here: <a href="https://speakerdeck.com/ohanhi/confidence-in-the-frontend-with-elm-1">Confidence in the frontend with Elm</a>.</p>
+<h2 id="modeling-the-problem">Modeling the problem</h2>
+<p>First off, let’s re-iterate what we want to achieve.</p>
+<p>From the player’s perspective the program should be like this:</p>
+<ul>
+<li>There is a ship representing the player near the bottom of the screen</li>
+<li>The player can move the ship left and right with corresponding arrow buttons</li>
+<li>The player can shoot with the space bar</li>
+</ul>
+<p>And from the ship’s perspective the same is:</p>
+<ul>
+<li>Ship has a position on a 1D axis</li>
+<li>Ship can have a velocity (positive or negative)</li>
+<li>Ship changes position according to its velocity</li>
+<li>Ship can shoot</li>
+</ul>
+<p>This gives us a definition of what the <code>Model</code> of our little program should look like:</p>
+<div class="sourceCode"><pre class="sourceCode haskell"><code class="sourceCode haskell"><span class="kw">type</span> alias <span class="dt">Model</span> <span class="fu">=</span>
+    { position <span class="fu">:</span> <span class="dt">Float</span>
+    , velocity <span class="fu">:</span> <span class="dt">Float</span>
+    , shotsFired <span class="fu">:</span> <span class="dt">Int</span>
+    }</code></pre></div>
+<p>This is an example of a data structure called <a href="http://guide.elm-lang.org/core_language.html#records">Record</a>. It is like a strongly typed and immutable cousin of the JavaScript object. Now, we only defined the type of the data so far, so let’s create a model to start from:</p>
+<div class="sourceCode"><pre class="sourceCode haskell"><code class="sourceCode haskell">model <span class="fu">:</span> <span class="dt">Model</span> <span class="co">-- this is a type annotation</span>
+model <span class="fu">=</span>
+    { position <span class="fu">=</span> <span class="dv">0</span>
+    , velocity <span class="fu">=</span> <span class="dv">0</span>
+    , shotsFired <span class="fu">=</span> <span class="dv">0</span>
+    }</code></pre></div>
+<p>What we have here is a simple value, or a constant. As everything in Elm is immutable, <code>model</code> will always be the same no matter what happens in the app. If we tried to redefine it, the compiler would simply complain that there are multiple definitions for the same name and the code would not compile.</p>
+<p>Alright, moving on to moving the ship! I remember from high school that _s = v*dt_, or moved distance is the velocity times timedifference. So that’s how we can update the ship. In Elm, that would be something like the following.</p>
+<div class="sourceCode"><pre class="sourceCode haskell"><code class="sourceCode haskell">applyPhysics <span class="fu">:</span> <span class="dt">Time</span> <span class="ot">-&gt;</span> <span class="dt">Model</span> <span class="ot">-&gt;</span> <span class="dt">Model</span>
+applyPhysics dt model <span class="fu">=</span>
+    { model <span class="fu">|</span> position <span class="fu">=</span> model<span class="fu">.</span>position <span class="fu">+</span> (model<span class="fu">.</span>velocity <span class="fu">*</span> dt) }</code></pre></div>
+<p>The above is the way to update a record. We start off with the <code>model</code> as the base, but update the <code>position</code> as per the formula. Note that <code>{ record | x = newX }</code> creates a new record, as everything in Elm is immutable. We will never have to worry about affecting anyone else’s state by accident. Even better, we can be certain no one else is affecting our state either!</p>
+<p>The type annotation on <code>applyPhysics</code> says: given a <code>Float</code> and a <code>Model</code>, I will return a <code>Model</code>, but also: given a <code>Float</code>, I will return <code>Model -&gt; Model</code>. For example, <code>(applyPhysics 16.7)</code> would actually return a working function to which we can pass a <code>Model</code>, and get the physics-applied ship as the return value. This property is called <a href="http://en.wikipedia.org/wiki/Currying">Currying</a> and all Elm functions automatically behave this way. Currying is very useful in many cases, but that is a topic for another article.</p>
+<p>We can update the other properties in the very same way:</p>
+<div class="sourceCode"><pre class="sourceCode haskell"><code class="sourceCode haskell">updateVelocity <span class="fu">:</span> <span class="dt">Float</span> <span class="ot">-&gt;</span> <span class="dt">Model</span> <span class="ot">-&gt;</span> <span class="dt">Model</span>
+updateVelocity newVelocity model <span class="fu">=</span>
+    { model <span class="fu">|</span> velocity <span class="fu">=</span> newVelocity }
+
+incrementShotsFired <span class="fu">:</span> <span class="dt">Model</span> <span class="ot">-&gt;</span> <span class="dt">Model</span>
+incrementShotsFired model <span class="fu">=</span>
+    { model <span class="fu">|</span> shotsFired <span class="fu">=</span> model<span class="fu">.</span>shotsFired <span class="fu">+</span> <span class="dv">1</span> }</code></pre></div>
+<p>Using these little functions we can update all of our state, but we’re missing something quite necessary: 1. View of the current state, and 2. getting input from the user and turning that into updates.</p>
+<h2 id="showing-the-state">Showing the state</h2>
+<p>Our game wouldn’t be much use if it couldn’t show the current state in some way. To keep things as simple as possible, let’s just print the model as text. We can do it like so:</p>
+<div class="sourceCode"><pre class="sourceCode haskell"><code class="sourceCode haskell">view <span class="fu">:</span> <span class="dt">Model</span> <span class="ot">-&gt;</span> <span class="dt">Html</span> msg
+view model <span class="fu">=</span>
+    text (toString model)</code></pre></div>
+<p>Here, <code>toString</code> turns the <code>model</code> record into a readable String representation of it, and <code>text</code> from the Html package turns a String into an HTML text node. Pretty handy! Now the strange part here might be the return type of our <code>view</code> function: <code>Html msg</code>. We don’t need to worry about it too much right now, but what the type annotation is saying is in essence: “I am returning some HTML, which may produce messages of the <code>msg</code> variety.”</p>
+<p>This will do for now, so let’s move on to the interactive part!</p>
+<h2 id="subscribing-to-user-input">Subscribing to user input</h2>
+<p>Elm 0.17 brought a new way of reacting to changes: Subscriptions. What we will do is this: we will subscribe to certain changes in the world, and when they happen, give the changes some names. We want to control the game by keyboard, so let’s start by taking a look at the <a href="http://package.elm-lang.org/packages/elm-lang/keyboard/1.0.0/Keyboard"><code>Keyboard</code></a> package. It seems we want to listen for both pressing down on buttons, and letting go of them. With these, we can determine when the user is pressing down on a certain key. We will need something else aswell: to keep updating the position of our ship, we need to have a somewhat steady rhythm of <code>applyPhysics</code> with the time difference! That we can get using the <a href="http://package.elm-lang.org/packages/elm-lang/animation-frame/1.0.0/AnimationFrame#diffs"><code>AnimationFrame.diffs</code></a>. Bundling that up into code looks a little like this.</p>
+<p>Defining the messages in our program:</p>
+<div class="sourceCode"><pre class="sourceCode haskell"><code class="sourceCode haskell"><span class="kw">type</span> <span class="dt">Msg</span>
+    <span class="fu">=</span> <span class="dt">TimeUpdate</span> <span class="dt">Time</span>
+    <span class="fu">|</span> <span class="dt">KeyDown</span> <span class="dt">KeyCode</span>
+    <span class="fu">|</span> <span class="dt">KeyUp</span> <span class="dt">KeyCode</span></code></pre></div>
+<p>Here we have a union type. For something to be considered a <code>Msg</code> in this module, it will have to be one of the above (<code>TimeUpdate</code>, <code>KeyDown</code> or <code>KeyUp</code>). Furthermore, the contents of e.g. <code>TimeUpdate</code> must be something that can be considered <code>Time</code>, and so on.</p>
+<p>Okay, now let’s declare the subscriptions we need, and name them with our newly-defined message types.</p>
+<div class="sourceCode"><pre class="sourceCode haskell"><code class="sourceCode haskell">subscriptions <span class="fu">:</span> <span class="dt">Model</span> <span class="ot">-&gt;</span> <span class="dt">Sub</span> <span class="dt">Msg</span>
+subscriptions model <span class="fu">=</span>
+    Sub.batch
+        [ AnimationFrame.diffs <span class="dt">TimeUpdate</span>
+        , Keyboard.downs <span class="dt">KeyDown</span>
+        , Keyboard.ups <span class="dt">KeyUp</span>
+        ]</code></pre></div>
+<p>This again will just return a subscription, or a <code>Sub Msg</code>. It doesn’t do anything on its own, but we need it for the actual wiring part of our code:</p>
+<div class="sourceCode"><pre class="sourceCode haskell"><code class="sourceCode haskell">main <span class="fu">=</span>
+    Html.program
+        { init <span class="fu">=</span> init
+        , view <span class="fu">=</span> view
+        , update <span class="fu">=</span> update
+        , subscriptions <span class="fu">=</span> subscriptions
+        }</code></pre></div>
+<p>If you are really paying attention, you might notice that we have <code>view</code> and <code>subscriptions</code> done by now, but both <code>init</code> and <code>update</code> are still missing. Luckily we already have all the building blocks, so taking this home shouldn’t be too much of a stretch anymore! In fact, <code>init</code> is so simple that we should get it out of the way right now.</p>
+<div class="sourceCode"><pre class="sourceCode haskell"><code class="sourceCode haskell">init <span class="fu">:</span> ( <span class="dt">Model</span>, <span class="dt">Cmd</span> <span class="dt">Msg</span> )
+init <span class="fu">=</span>
+    ( model, Cmd.none )</code></pre></div>
+<p>That’s all there is to it! Again, we can leave the <code>Cmd</code> stuff for later, but just as a primer: commands are the only way to have effects in an Elm program. What are effects? They are anything that can affect the world outside the app (such as posting something to the Internet), or whose value can vary between program runs (such as the current time, or random numbers). Here we don’t need to do any commands, so we define it to be <code>none</code>.</p>
+<h2 id="putting-it-all-together-the-update">Putting it all together: the update</h2>
+<p>All right, now’s the time to make it all work!</p>
+<p>Let’s begin from the high level. The <code>update</code> function takes the incoming message and the old model, and returns the updated model along with possible commands. In this case we won’t need any commands, but we still need to fulfill the contract with <code>none</code>s.</p>
+<div class="sourceCode"><pre class="sourceCode haskell"><code class="sourceCode haskell">update <span class="fu">:</span> <span class="dt">Msg</span> <span class="ot">-&gt;</span> <span class="dt">Model</span> <span class="ot">-&gt;</span> ( <span class="dt">Model</span>, <span class="dt">Cmd</span> <span class="dt">Msg</span> )
+update msg model <span class="fu">=</span>
+    <span class="kw">case</span> msg <span class="kw">of</span>
+        <span class="dt">TimeUpdate</span> dt <span class="ot">-&gt;</span>
+            ( applyPhysics dt model, Cmd.none )
+
+        <span class="dt">KeyDown</span> keyCode <span class="ot">-&gt;</span>
+            ( keyDown keyCode model, Cmd.none )
+
+        <span class="dt">KeyUp</span> keyCode <span class="ot">-&gt;</span>
+            ( keyUp keyCode model, Cmd.none )</code></pre></div>
+<p>Note that each of the possible <code>Msg</code> options is handled. If they weren’t, the Elm compiler would catch the problem, which is pretty cool and impressive. Anyway, the <code>TimeUpdate</code> is nice and easy. We can simply use the <code>applyPhysics</code> function to get the updated model. For the keypressing cases, I decided to split the handling into their own functions as well.</p>
+<p>When it comes to the packages, Elm 0.17 is still a bit of a work in progress. So to make the keyboard handling a little nicer, I made a tiny helper module. There is a function that can turn a <code>KeyCode</code> into a <code>Key</code>, which is a simple union type. It only has the keys we need for this exercise now, but could easily be extended.</p>
+<div class="sourceCode"><pre class="sourceCode haskell"><code class="sourceCode haskell">keyDown <span class="fu">:</span> <span class="dt">KeyCode</span> <span class="ot">-&gt;</span> <span class="dt">Model</span> <span class="ot">-&gt;</span> <span class="dt">Model</span>
+keyDown keyCode model <span class="fu">=</span>
+    <span class="kw">case</span> Key.fromCode keyCode <span class="kw">of</span>
+        <span class="dt">Space</span> <span class="ot">-&gt;</span>
+            incrementShotsFired model
+
+        <span class="dt">ArrowLeft</span> <span class="ot">-&gt;</span>
+            updateVelocity <span class="fu">-</span><span class="fl">1.0</span> model
+
+        <span class="dt">ArrowRight</span> <span class="ot">-&gt;</span>
+            updateVelocity <span class="fl">1.0</span> model
+
+        _ <span class="ot">-&gt;</span>
+            model</code></pre></div>
+<p>The above should be pretty clear. Spacebar shoots once as soon as it is pressed down and doesn’t do anything else. The arrow keys set the velocity of the ship when pressed down. Notice that we need an “otherwise” case, customarily denoted as <code>_</code>. This is because there are many other possible keys on the keyboard besides the ones we’ve covered.</p>
+<p>How about the release part?</p>
+<div class="sourceCode"><pre class="sourceCode haskell"><code class="sourceCode haskell">keyUp <span class="fu">:</span> <span class="dt">KeyCode</span> <span class="ot">-&gt;</span> <span class="dt">Model</span> <span class="ot">-&gt;</span> <span class="dt">Model</span>
+keyUp keyCode model <span class="fu">=</span>
+    <span class="kw">case</span> Key.fromCode keyCode <span class="kw">of</span>
+        <span class="dt">ArrowLeft</span> <span class="ot">-&gt;</span>
+            updateVelocity <span class="dv">0</span> model
+
+        <span class="dt">ArrowRight</span> <span class="ot">-&gt;</span>
+            updateVelocity <span class="dv">0</span> model
+
+        _ <span class="ot">-&gt;</span>
+            model</code></pre></div>
+<p>If the released key happened to be one of the movement keys, reset the velocity to 0, otherwise let’s just keep the current model. Pretty straightforward, right?</p>
+<p>Now it should work!</p>
+<h2 id="the-code">The code</h2>
+<p>Below is the full code, imports and all. You can also find the code on <a href="https://github.com/ohanhi/elm-game-base">GitHub</a>, along with some setup instructions.</p>
+<p><strong>Game.elm</strong></p>
+<div class="sourceCode"><pre class="sourceCode haskell"><code class="sourceCode haskell"><span class="kw">module</span> <span class="dt">Game</span> exposing (<span class="fu">..</span>)
+
+<span class="kw">import </span><span class="dt">Html</span> exposing (<span class="dt">Html</span>, text)
+<span class="kw">import </span><span class="dt">Html.App</span> <span class="kw">as</span> <span class="dt">Html</span>
+<span class="kw">import </span><span class="dt">Keyboard</span> exposing (<span class="dt">KeyCode</span>)
+<span class="kw">import </span><span class="dt">AnimationFrame</span>
+<span class="kw">import </span><span class="dt">Time</span> exposing (<span class="dt">Time</span>)
+<span class="kw">import </span><span class="dt">Key</span> exposing (..)
+
+
+main <span class="fu">=</span>
+    Html.program
+        { init <span class="fu">=</span> init
+        , view <span class="fu">=</span> view
+        , update <span class="fu">=</span> update
+        , subscriptions <span class="fu">=</span> subscriptions
+        }
+
+
+
+<span class="co">-- MODEL</span>
+
+
+<span class="kw">type</span> alias <span class="dt">Model</span> <span class="fu">=</span>
+    { velocity <span class="fu">:</span> <span class="dt">Float</span>
+    , position <span class="fu">:</span> <span class="dt">Float</span>
+    , shotsFired <span class="fu">:</span> <span class="dt">Int</span>
+    }
+
+
+model <span class="fu">:</span> <span class="dt">Model</span>
+model <span class="fu">=</span>
+    { velocity <span class="fu">=</span> <span class="dv">0</span>
+    , position <span class="fu">=</span> <span class="dv">0</span>
+    , shotsFired <span class="fu">=</span> <span class="dv">0</span>
+    }
+
+
+init <span class="fu">:</span> ( <span class="dt">Model</span>, <span class="dt">Cmd</span> <span class="dt">Msg</span> )
+init <span class="fu">=</span>
+    ( model, Cmd.none )
+
+
+
+<span class="co">-- UPDATE</span>
+
+
+<span class="kw">type</span> <span class="dt">Msg</span>
+    <span class="fu">=</span> <span class="dt">TimeUpdate</span> <span class="dt">Time</span>
+    <span class="fu">|</span> <span class="dt">KeyDown</span> <span class="dt">KeyCode</span>
+    <span class="fu">|</span> <span class="dt">KeyUp</span> <span class="dt">KeyCode</span>
+
+
+update <span class="fu">:</span> <span class="dt">Msg</span> <span class="ot">-&gt;</span> <span class="dt">Model</span> <span class="ot">-&gt;</span> ( <span class="dt">Model</span>, <span class="dt">Cmd</span> <span class="dt">Msg</span> )
+update msg model <span class="fu">=</span>
+    <span class="kw">case</span> msg <span class="kw">of</span>
+        <span class="dt">TimeUpdate</span> dt <span class="ot">-&gt;</span>
+            ( applyPhysics dt model, Cmd.none )
+
+        <span class="dt">KeyDown</span> keyCode <span class="ot">-&gt;</span>
+            ( keyDown keyCode model, Cmd.none )
+
+        <span class="dt">KeyUp</span> keyCode <span class="ot">-&gt;</span>
+            ( keyUp keyCode model, Cmd.none )
+
+
+keyDown <span class="fu">:</span> <span class="dt">KeyCode</span> <span class="ot">-&gt;</span> <span class="dt">Model</span> <span class="ot">-&gt;</span> <span class="dt">Model</span>
+keyDown keyCode model <span class="fu">=</span>
+    <span class="kw">case</span> Key.fromCode keyCode <span class="kw">of</span>
+        <span class="dt">Space</span> <span class="ot">-&gt;</span>
+            incrementShotsFired model
+
+        <span class="dt">ArrowLeft</span> <span class="ot">-&gt;</span>
+            updateVelocity <span class="fu">-</span><span class="fl">1.0</span> model
+
+        <span class="dt">ArrowRight</span> <span class="ot">-&gt;</span>
+            updateVelocity <span class="fl">1.0</span> model
+
+        _ <span class="ot">-&gt;</span>
+            model
+
+
+keyUp <span class="fu">:</span> <span class="dt">KeyCode</span> <span class="ot">-&gt;</span> <span class="dt">Model</span> <span class="ot">-&gt;</span> <span class="dt">Model</span>
+keyUp keyCode model <span class="fu">=</span>
+    <span class="kw">case</span> Key.fromCode keyCode <span class="kw">of</span>
+        <span class="dt">ArrowLeft</span> <span class="ot">-&gt;</span>
+            updateVelocity <span class="dv">0</span> model
+
+        <span class="dt">ArrowRight</span> <span class="ot">-&gt;</span>
+            updateVelocity <span class="dv">0</span> model
+
+        _ <span class="ot">-&gt;</span>
+            model
+
+
+applyPhysics <span class="fu">:</span> <span class="dt">Float</span> <span class="ot">-&gt;</span> <span class="dt">Model</span> <span class="ot">-&gt;</span> <span class="dt">Model</span>
+applyPhysics dt model <span class="fu">=</span>
+    { model <span class="fu">|</span> position <span class="fu">=</span> model<span class="fu">.</span>position <span class="fu">+</span> model<span class="fu">.</span>velocity <span class="fu">*</span> dt }
+
+
+updateVelocity <span class="fu">:</span> <span class="dt">Float</span> <span class="ot">-&gt;</span> <span class="dt">Model</span> <span class="ot">-&gt;</span> <span class="dt">Model</span>
+updateVelocity newVelocity model <span class="fu">=</span>
+    { model <span class="fu">|</span> velocity <span class="fu">=</span> newVelocity }
+
+
+incrementShotsFired <span class="fu">:</span> <span class="dt">Model</span> <span class="ot">-&gt;</span> <span class="dt">Model</span>
+incrementShotsFired model <span class="fu">=</span>
+    { model <span class="fu">|</span> shotsFired <span class="fu">=</span> model<span class="fu">.</span>shotsFired <span class="fu">+</span> <span class="dv">1</span> }
+
+
+
+<span class="co">-- VIEW</span>
+
+
+view <span class="fu">:</span> <span class="dt">Model</span> <span class="ot">-&gt;</span> <span class="dt">Html</span> msg
+view model <span class="fu">=</span>
+    text (toString model)
+
+
+
+<span class="co">-- SUBSCRIPTIONS</span>
+
+
+subscriptions <span class="fu">:</span> <span class="dt">Model</span> <span class="ot">-&gt;</span> <span class="dt">Sub</span> <span class="dt">Msg</span>
+subscriptions model <span class="fu">=</span>
+    Sub.batch
+        [ AnimationFrame.diffs <span class="dt">TimeUpdate</span>
+        , Keyboard.downs <span class="dt">KeyDown</span>
+        , Keyboard.ups <span class="dt">KeyUp</span>
+        ]</code></pre></div>
+<p><strong>Key.elm</strong></p>
+<div class="sourceCode"><pre class="sourceCode haskell"><code class="sourceCode haskell"><span class="kw">module</span> <span class="dt">Key</span> exposing (<span class="fu">..</span>)
+
+
+<span class="kw">type</span> <span class="dt">Key</span>
+    <span class="fu">=</span> <span class="dt">Space</span>
+    <span class="fu">|</span> <span class="dt">ArrowLeft</span>
+    <span class="fu">|</span> <span class="dt">ArrowRight</span>
+    <span class="fu">|</span> <span class="dt">Unknown</span>
+
+
+fromCode <span class="fu">:</span> <span class="dt">Int</span> <span class="ot">-&gt;</span> <span class="dt">Key</span>
+fromCode keyCode <span class="fu">=</span>
+    <span class="kw">case</span> keyCode <span class="kw">of</span>
+        <span class="dv">32</span> <span class="ot">-&gt;</span>
+            <span class="dt">Space</span>
+
+        <span class="dv">37</span> <span class="ot">-&gt;</span>
+            <span class="dt">ArrowLeft</span>
+
+        <span class="dv">39</span> <span class="ot">-&gt;</span>
+            <span class="dt">ArrowRight</span>
+
+        _ <span class="ot">-&gt;</span>
+            <span class="dt">Unknown</span></code></pre></div>
+<p><strong>elm-package.json</strong></p>
+<div class="sourceCode"><pre class="sourceCode json"><code class="sourceCode json"><span class="fu">{</span>
+    <span class="dt">&quot;version&quot;</span><span class="fu">:</span> <span class="st">&quot;1.0.0&quot;</span><span class="fu">,</span>
+    <span class="dt">&quot;summary&quot;</span><span class="fu">:</span> <span class="st">&quot;Example base for a game in Elm 0.17&quot;</span><span class="fu">,</span>
+    <span class="dt">&quot;repository&quot;</span><span class="fu">:</span> <span class="st">&quot;https://github.com/ohanhi/elm-game-base.git&quot;</span><span class="fu">,</span>
+    <span class="dt">&quot;license&quot;</span><span class="fu">:</span> <span class="st">&quot;BSD3&quot;</span><span class="fu">,</span>
+    <span class="dt">&quot;source-directories&quot;</span><span class="fu">:</span> <span class="ot">[</span>
+        <span class="st">&quot;.&quot;</span>
+    <span class="ot">]</span><span class="fu">,</span>
+    <span class="dt">&quot;exposed-modules&quot;</span><span class="fu">:</span> <span class="ot">[]</span><span class="fu">,</span>
+    <span class="dt">&quot;dependencies&quot;</span><span class="fu">:</span> <span class="fu">{</span>
+        <span class="dt">&quot;elm-lang/animation-frame&quot;</span><span class="fu">:</span> <span class="st">&quot;1.0.0 &lt;= v &lt; 2.0.0&quot;</span><span class="fu">,</span>
+        <span class="dt">&quot;elm-lang/core&quot;</span><span class="fu">:</span> <span class="st">&quot;4.0.0 &lt;= v &lt; 5.0.0&quot;</span><span class="fu">,</span>
+        <span class="dt">&quot;elm-lang/html&quot;</span><span class="fu">:</span> <span class="st">&quot;1.0.0 &lt;= v &lt; 2.0.0&quot;</span><span class="fu">,</span>
+        <span class="dt">&quot;elm-lang/keyboard&quot;</span><span class="fu">:</span> <span class="st">&quot;1.0.0 &lt;= v &lt; 2.0.0&quot;</span>
+    <span class="fu">},</span>
+    <span class="dt">&quot;elm-version&quot;</span><span class="fu">:</span> <span class="st">&quot;0.17.0 &lt;= v &lt; 0.18.0&quot;</span>
+<span class="fu">}</span></code></pre></div>
+
+    <div class="post-footer">
+      Maybe your followers would be interested in this post?
+      <a href="https://twitter.com/intent/tweet?original_referer=http%3A%2F%2Fohanhi.com%2Fbase-for-game-elm-017.html&amp;text=Base%20for%20a%20game%20in%20Elm%200.17%20-%20Revisiting%20the%20%22hard%20way%22&amp;url=http%3A%2F%2Fohanhi.com%2Fbase-for-game-elm-017.html&amp;via=ohanhi" rel="nofollow" target="_blank">Get tweety with it!</a>
+    </div>
+
+  </section>
+  <footer>
+    <a href="https://twitter.com/ohanhi">Twitter</a>
+    &ndash;
+    <a href="https://github.com/ohanhi">GitHub</a>
+  </footer>
+
+  <script src="js/main.js"></script>
+  <script>
+  (function(b,o,i,l,e,r){b.GoogleAnalyticsObject=l;b[l]||(b[l]=
+    function(){(b[l].q=b[l].q||[]).push(arguments)});b[l].l=+new Date;
+    e=o.createElement(i);r=o.getElementsByTagName(i)[0];
+    e.src='https://www.google-analytics.com/analytics.js';
+    r.parentNode.insertBefore(e,r)}(window,document,'script','ga'));
+    ga('create','UA-58943555-1');ga('send','pageview');
+    </script>
+  </body>
+  </html>

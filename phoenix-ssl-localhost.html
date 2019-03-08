@@ -1,0 +1,92 @@
+<!DOCTYPE html>
+<html class="no-js">
+<head>
+  <meta charset="utf-8">
+  <meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1">
+  <title> SSL on localhost with Phoenix Framework - Ossi Hanhinen</title>
+  <meta name="description" content="SSL on localhost with Phoenix Framework">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <link rel="stylesheet" href="./css/main.css">
+</head>
+<body>
+  <section class="contain post">
+    <a href="./" class="back-link">&laquo; Home</a>
+
+    <header class="post-header">
+  
+  <h1 class="post-title">SSL on localhost with Phoenix Framework</h1>
+  
+</header>
+<div class="post-meta">
+  <img class="profile-pic" src="./img/profile_tiny.jpg" alt>
+  <h3 class="author">
+    <span>Ossi Hanhinen</span>
+    <a href="https://twitter.com/ohanhi">@ohanhi</a>
+  </h3>
+  <p class="post-date">February 18, 2016</p>
+</div>
+
+<hr>
+
+<h3>Read this to</h3>
+<ul class="post-reasons">
+  
+  <li>learn how to set up SSL for localhost</li>
+  
+</ul>
+
+<h3>I expect you to know</h3>
+<ul class="post-prereqs">
+  
+  <li>Elixir and Phoenix</li>
+  
+</ul>
+
+<hr> <p>Sometimes when developing a backend, you want to use HTTPS even on localhost. I ran into this situation not long ago when I was building a mock service providing OAuth 2.0 authentication.</p>
+<p>Here’s how you can enable SSL on Elixir Phoenix in dev mode.</p>
+<h2 id="get-a-certificate">1. Get a certificate</h2>
+<p>For development purposes, you can generate a self-signed certificate with the following commands:</p>
+<div class="sourceCode"><pre class="sourceCode bash"><code class="sourceCode bash"><span class="co"># generate key</span>
+$ <span class="ex">openssl</span> genrsa -out localhost.key 2048
+<span class="co"># generate cert</span>
+$ <span class="ex">openssl</span> req -new -x509 -key localhost.key -out localhost.cert -days 3650 -subj /CN=localhost</code></pre></div>
+<p>You can of course also use <a href="https://letsencrypt.org/">Letsencrypt</a> for a free signed certificate.</p>
+<h2 id="copy-the-key-and-cert-into-your-project">2. Copy the key and cert into your project</h2>
+<p>Put them in a directory called <code>priv/keys/</code>.</p>
+<h2 id="set-up-the-config">3. Set up the config</h2>
+<p>In your <code>config/dev.exs</code> file:</p>
+<div class="sourceCode"><pre class="sourceCode elixir"><code class="sourceCode elixir">config <span class="va">:phoenix_oauth2_mock_server</span>, <span class="cn">PhoenixOauth2MockServer</span><span class="op">.</span><span class="cn">Endpoint</span>,
+  <span class="va">http:</span> [<span class="va">port:</span> <span class="dv">4000</span>],
+  <span class="va">https:</span> [<span class="va">port:</span> <span class="dv">4443</span>,
+          <span class="va">otp_app:</span> <span class="va">:phoenix_oauth2_mock_server</span>,
+          <span class="va">keyfile:</span> <span class="st">&quot;priv/keys/localhost.key&quot;</span>,
+          <span class="va">certfile:</span> <span class="st">&quot;priv/keys/localhost.cert&quot;</span>],
+  <span class="va">debug_errors:</span> <span class="cn">true</span>,
+  <span class="va">code_reloader:</span> <span class="cn">true</span>,
+  <span class="va">check_origin:</span> <span class="cn">false</span>,
+  <span class="va">watchers:</span> [<span class="va">node:</span> [<span class="st">&quot;node_modules/brunch/bin/brunch&quot;</span>, <span class="st">&quot;watch&quot;</span>, <span class="st">&quot;--stdin&quot;</span>]]</code></pre></div>
+<p><strong>Done!</strong></p>
+
+    <div class="post-footer">
+      Maybe your followers would be interested in this post?
+      <a href="https://twitter.com/intent/tweet?original_referer=http%3A%2F%2Fohanhi.com%2Fphoenix-ssl-localhost.html&amp;text=SSL%20on%20localhost%20with%20Phoenix%20Framework&amp;url=http%3A%2F%2Fohanhi.com%2Fphoenix-ssl-localhost.html&amp;via=ohanhi" rel="nofollow" target="_blank">Get tweety with it!</a>
+    </div>
+
+  </section>
+  <footer>
+    <a href="https://twitter.com/ohanhi">Twitter</a>
+    &ndash;
+    <a href="https://github.com/ohanhi">GitHub</a>
+  </footer>
+
+  <script src="js/main.js"></script>
+  <script>
+  (function(b,o,i,l,e,r){b.GoogleAnalyticsObject=l;b[l]||(b[l]=
+    function(){(b[l].q=b[l].q||[]).push(arguments)});b[l].l=+new Date;
+    e=o.createElement(i);r=o.getElementsByTagName(i)[0];
+    e.src='https://www.google-analytics.com/analytics.js';
+    r.parentNode.insertBefore(e,r)}(window,document,'script','ga'));
+    ga('create','UA-58943555-1');ga('send','pageview');
+    </script>
+  </body>
+  </html>

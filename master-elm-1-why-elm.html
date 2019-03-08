@@ -1,0 +1,107 @@
+<!DOCTYPE html>
+<html class="no-js">
+<head>
+  <meta charset="utf-8">
+  <meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1">
+  <title> Why Elm - Ossi Hanhinen</title>
+  <meta name="description" content="Why Elm">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <link rel="stylesheet" href="./css/main.css">
+</head>
+<body>
+  <section class="contain post">
+    <a href="./" class="back-link">&laquo; Home</a>
+
+    <header class="post-header">
+  
+  <h3>Master Elm pt. 1</h3>
+  
+  <h1 class="post-title">Why Elm</h1>
+  
+</header>
+<div class="post-meta">
+  <img class="profile-pic" src="./img/profile_tiny.jpg" alt>
+  <h3 class="author">
+    <span>Ossi Hanhinen</span>
+    <a href="https://twitter.com/ohanhi">@ohanhi</a>
+  </h3>
+  <p class="post-date">March 2, 2016</p>
+</div>
+
+<hr>
+
+<h3>Read this to</h3>
+<ul class="post-reasons">
+  
+  <li>know what "Elm" is in layman's terms</li>
+  
+  <li>understand what _confidence_ in programming means</li>
+  
+  <li>get a feel of how Elm makes you confident</li>
+  
+</ul>
+
+<h3>I expect you to know</h3>
+<ul class="post-prereqs">
+  
+  <li>some JavaScript</li>
+  
+</ul>
+
+<hr> <h2 id="the-case-for-elm">The case for Elm</h2>
+<p>Elm is a language for building web frontend. It compiles to JavaScript so that it runs in the browser. What sets it apart from most other “to-javascript” languages is that it really doesn’t replicate or try to mend the intricacies of JavaScript. Elm is a language and ecosystem of its own, and it just happens to compile to JavaScript.</p>
+<p>It is very common nowadays to write code that is translated into JavaScript the most used browsers can understand. ES6 and JSX are some of the most popular ones, but there’s a multitude of others including CoffeeScript, ClojureScript and TypeScript.</p>
+<p>Why should you learn Elm then? There are many reasons, such as learning to really think in the <em>functional mindset</em> and seeing how helpful a compiler can in reality be. If you have any JavaScript experience, you probably recognize the phrases “Uncaught ReferenceError: foo is not defined” and “Uncaught TypeError: bar.quux is not a function”. This will never happen with Elm. Because of the language design, there are no runtime exceptions. Below is a list of key benefits in my opinion.</p>
+<h2 id="benefits-of-using-elm-instead-of-plain-javascript">Benefits of using Elm instead of plain JavaScript</h2>
+<ul>
+<li><strong>Strong static types</strong><br> Find errors fast with readable compiler messages.</li>
+<li><strong>No <code>null</code> or <code>undefined</code></strong><br> Never miss a potential problem.</li>
+<li><strong>Total immutability</strong><br> Focus on what you are writing right now without worrying about outer state.</li>
+<li><strong>Purely functional</strong><br> Leads to decoupled and easily refactorable code.</li>
+<li><strong>No runtime exceptions</strong><br> Gives incomparable reliability.</li>
+<li><strong>Reactive by design</strong><br> FRP isn’t opt-in, it is baked right in the language.</li>
+</ul>
+<p>Don’t worry if you don’t know what all of this means, I’ll be covering all of these subjects in later posts.</p>
+<h2 id="confidence-in-programming">Confidence in programming</h2>
+<p>Confidence is a tricky subject. Talking about it very easily comes off as purely subjective. A state of mind, so to say. What I am trying to convey here though is something objective — how much of programming is about <em>remembering</em> to do things and handle error cases.</p>
+<p>I am a simple man. I can’t handle an entire codebase in my head. In JavaScript and many other languages this means I need to write tests for trivial things to make sure future me is covered.</p>
+I am talking about this:
+<blockquote class="twitter-tweet" data-lang="en">
+<p lang="en" dir="ltr">
+Me writing Haskell: 30% test coverage. Scala: 60% test coverage. Ruby: 97% test coverage. Guess the order of reliability of code..
+</p>
+— Wille (<span class="citation">@wfaler</span>) <a href="https://twitter.com/wfaler/status/704807786660687874">March 1, 2016</a>
+</blockquote>
+<script async src="//platform.twitter.com/widgets.js" charset="utf-8"></script>
+<p>Elm is right up there with Haskell in terms of reliability. The strictness of the type system eliminates an enormous amount — if not <em>the vast majority of</em> — mundane errors. Furthermore, refactoring is incredibly nice. Daniel Bachler had a relatable talk in BerlinJS not long ago: <a href="http://slides.com/danielbachler/fearless-refactoring-with-elm#/">Fearless refactoring with Elm</a>. The refactoring experience most of the time is:</p>
+<ol style="list-style-type: decimal">
+<li>Make changes, any changes.</li>
+<li>The compiler tells what you missed.</li>
+<li>Go to 1.</li>
+</ol>
+<p>When the code compiles, it will work. There will not be any crashes. The only things that can go wrong are application logic. Application logic is what we should be focused on at all times, but many languages don’t let us do that. And since Elm enforces immutability and functional style, it is in fact very hard to cause regressions that you don’t know about.</p>
+<p>I find that when coding Elm, I get to spend most of my time thinking about the actual problem that I am solving. Whereas when coding JavaScript, I spend my time debugging and only every once in a while get to think about the actual problem.</p>
+
+    <div class="post-footer">
+      Maybe your followers would be interested in this post?
+      <a href="https://twitter.com/intent/tweet?original_referer=http%3A%2F%2Fohanhi.com%2Fmaster-elm-1-why-elm.html&amp;text=Master%20Elm%20pt.%201%3A%20Why%20Elm&amp;url=http%3A%2F%2Fohanhi.com%2Fmaster-elm-1-why-elm.html&amp;via=ohanhi" rel="nofollow" target="_blank">Get tweety with it!</a>
+    </div>
+
+  </section>
+  <footer>
+    <a href="https://twitter.com/ohanhi">Twitter</a>
+    &ndash;
+    <a href="https://github.com/ohanhi">GitHub</a>
+  </footer>
+
+  <script src="js/main.js"></script>
+  <script>
+  (function(b,o,i,l,e,r){b.GoogleAnalyticsObject=l;b[l]||(b[l]=
+    function(){(b[l].q=b[l].q||[]).push(arguments)});b[l].l=+new Date;
+    e=o.createElement(i);r=o.getElementsByTagName(i)[0];
+    e.src='https://www.google-analytics.com/analytics.js';
+    r.parentNode.insertBefore(e,r)}(window,document,'script','ga'));
+    ga('create','UA-58943555-1');ga('send','pageview');
+    </script>
+  </body>
+  </html>
