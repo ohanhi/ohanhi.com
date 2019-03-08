@@ -2,7 +2,6 @@
 
 This is the source code for my website, [ohanhi.com](https://ohanhi.com/).
 
-
 ## How it works
 
 This is a [Hakyll](https://jaspervdj.be/hakyll/) site. In general, the structure is like this:
@@ -41,7 +40,6 @@ The blog posts themselves are Markdown files in the `posts/` directory, and thei
 
 My configuration for this is not too sophisticated, and so the directory depth of 1 and the date in the filename are essential.
 
-
 ## Building
 
 Assuming you have [Stack](https://haskellstack.org/) installed, you can:
@@ -55,6 +53,13 @@ $ stack exec site build
 $ stack exec site rebuild
 ```
 
+## Deployment
+
+Netlify auto-deploys from the `built-site` branch, so I have a shell script to do all the steps needed to build and deploy from the CLI.
+
+```bash
+$ bash deploy.sh
+```
 
 ## License
 
