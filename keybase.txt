@@ -1,0 +1,56 @@
+==================================================================
+https://keybase.io/ohanhi
+--------------------------------------------------------------------
+
+I hereby claim:
+
+  * I am an admin of https://ohanhi.com
+  * I am ohanhi (https://keybase.io/ohanhi) on keybase.
+  * I have a public key ASC2XeeauM2QIK1IflqnGF2GUqnIrsdpXSNp7KYcR1LMvQo
+
+To do so, I am signing this object:
+
+{
+  "body": {
+    "key": {
+      "eldest_kid": "0120b65de79ab8cd9020ad487e5aa7185d8652a9c8aec7695d2369eca61c4752ccbd0a",
+      "host": "keybase.io",
+      "kid": "0120b65de79ab8cd9020ad487e5aa7185d8652a9c8aec7695d2369eca61c4752ccbd0a",
+      "uid": "31e70b4563250ee44a5b5cca9df10119",
+      "username": "ohanhi"
+    },
+    "merkle_root": {
+      "ctime": 1582552642,
+      "hash": "cd44eca5912842d6d82255097195287a59314603fe28d7edbcb054204d39ddffb3d7fd80193c1beac5c68f92f45af514f91ac59270c233d3415881f0494b1c05",
+      "hash_meta": "a99b7331107416522a040aafec82cb6a4ecc7cc88ac4ddc232290438714916b7",
+      "seqno": 14716659
+    },
+    "service": {
+      "entropy": "fmfSMmqwli2jUr6Wk1BU/gi0",
+      "hostname": "ohanhi.com",
+      "protocol": "https:"
+    },
+    "type": "web_service_binding",
+    "version": 2
+  },
+  "client": {
+    "name": "keybase.io go client",
+    "version": "5.2.0"
+  },
+  "ctime": 1582552661,
+  "expire_in": 504576000,
+  "prev": "b36b38867b7b6677024b728fa1d256c730d5f79823d75a334c9fe8303006a90a",
+  "seqno": 11,
+  "tag": "signature"
+}
+
+which yields the signature:
+
+hKRib2R5hqhkZXRhY2hlZMOpaGFzaF90eXBlCqNrZXnEIwEgtl3nmrjNkCCtSH5apxhdhlKpyK7HaV0jaeymHEdSzL0Kp3BheWxvYWTESpcCC8Qgs2s4hnt7ZncCS3KPodJWxzDV95gj11ozTJ/oMDAGqQrEINjF/a+FHOKuj0bzEYY0iooW5GYjlv+HequQktdpgX6QAgHCo3NpZ8RAqq3CqAHIWTB/WjsF3C+RkQSwVMzh3C70tIt4Ca+C7RE6miUMUpNHPIPxj2VmcbUmL86h/pisnmoLdyKRsmHKBKhzaWdfdHlwZSCkaGFzaIKkdHlwZQildmFsdWXEINlP3aKAGOh6IH4iEqeOV8a+YP3LQ4abiTEZmq0nzRtwo3RhZ80CAqd2ZXJzaW9uAQ==
+
+And finally, I am proving ownership of this host by posting or
+appending to this document.
+
+View my publicly-auditable identity here: https://keybase.io/ohanhi
+
+==================================================================
